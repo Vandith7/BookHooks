@@ -153,175 +153,171 @@ const Login = () => {
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundColor: theme.primary,
+      <SafeAreaView
+        style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: theme.primary,
+        }}>
+        <ScrollView
+          keyboardShouldPersistTaps={'always'}
+          contentContainerStyle={{
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
-          <ScrollView
-            keyboardShouldPersistTaps={'always'}
-            contentContainerStyle={{
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <View style={[styles.container, {backgroundColor: theme.card}]}>
-              <View
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 20,
-                }}>
-                <Image
-                  source={logo}
-                  style={{height: 100, width: 100}}
-                  resizeMode="contain"
+          <View style={[styles.container, {backgroundColor: theme.card}]}>
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+              <Image
+                source={logo}
+                style={{height: 100, width: 100}}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+              <Text
+                style={[
+                  styles.welcomeText,
+                  {
+                    fontSize: TextSize.Medium,
+                    color: theme.text,
+                    fontFamily: 'Poppins-SemiBold',
+                    fontWeight: '500',
+                  },
+                ]}>
+                Log In to
+              </Text>
+              <Text
+                style={[
+                  {
+                    fontSize: TextSize.XXLarge,
+                    color: theme.primary,
+                    fontFamily: 'Merriweather-Black',
+                    marginBottom: '8%',
+                  },
+                ]}>
+                BookHooks
+              </Text>
+            </View>
+
+            {/* Other Input Fields */}
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="person"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="User Name or email"
+                placeholderTextColor={theme.placeholder}
+                value={userName}
+                onChangeText={setUserName}
+                onBlur={validateUserName} // Validate on blur
+              />
+            </View>
+            {userNameError ? (
+              <Text style={styles.errorText}>{userNameError}</Text>
+            ) : null}
+
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="lock"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Password"
+                placeholderTextColor={theme.placeholder}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                onBlur={validatePassword} // Validate on blur
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Icon
+                  style={styles.icon}
+                  name={showPassword ? 'visibility' : 'visibility-off'}
+                  size={24}
+                  color={theme.iconColor}
                 />
-              </View>
-              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+              </TouchableOpacity>
+            </View>
+            {passwordError ? (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            ) : null}
+
+            {loading ? (
+              <ActivityIndicator size="large" color={theme.accent2} />
+            ) : (
+              <TouchableOpacity
+                disabled={loading}
+                style={[
+                  styles.getStartedButton,
+                  {backgroundColor: theme.primary, elevation: 4},
+                ]}
+                onPress={handleLogin}>
                 <Text
                   style={[
-                    styles.welcomeText,
                     {
-                      fontSize: TextSize.Medium,
+                      fontSize: TextSize.H6,
                       color: theme.text,
-                      fontFamily: 'Poppins-SemiBold',
-                      fontWeight: '500',
+                      fontFamily: 'Poppins-Bold',
                     },
                   ]}>
-                  Log In to
+                  Sign In
                 </Text>
-                <Text
-                  style={[
-                    {
-                      fontSize: TextSize.XXLarge,
-                      color: theme.primary,
-                      fontFamily: 'Merriweather-Black',
-                      marginBottom: '8%',
-                    },
-                  ]}>
-                  BookHooks
-                </Text>
-              </View>
-
-              {/* Other Input Fields */}
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary},
-                ]}>
-                <Icon
-                  name="person"
-                  size={24}
-                  color={theme.iconColor}
-                  style={styles.icon}
-                />
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="User Name or email"
-                  placeholderTextColor={theme.placeholder}
-                  value={userName}
-                  onChangeText={setUserName}
-                  onBlur={validateUserName} // Validate on blur
-                />
-              </View>
-              {userNameError ? (
-                <Text style={styles.errorText}>{userNameError}</Text>
-              ) : null}
-
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary},
-                ]}>
-                <Icon
-                  name="lock"
-                  size={24}
-                  color={theme.iconColor}
-                  style={styles.icon}
-                />
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Password"
-                  placeholderTextColor={theme.placeholder}
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  onBlur={validatePassword} // Validate on blur
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}>
-                  <Icon
-                    style={styles.icon}
-                    name={showPassword ? 'visibility' : 'visibility-off'}
-                    size={24}
-                    color={theme.iconColor}
-                  />
-                </TouchableOpacity>
-              </View>
-              {passwordError ? (
-                <Text style={styles.errorText}>{passwordError}</Text>
-              ) : null}
-
-              {loading ? (
-                <ActivityIndicator size="large" color={theme.accent2} />
-              ) : (
-                <TouchableOpacity
-                  disabled={loading}
-                  style={[
-                    styles.getStartedButton,
-                    {backgroundColor: theme.primary, elevation: 4},
-                  ]}
-                  onPress={handleLogin}>
-                  <Text
-                    style={[
-                      {
-                        fontSize: TextSize.H6,
-                        color: theme.text,
-                        fontFamily: 'Poppins-Bold',
-                      },
-                    ]}>
-                    Sign In
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {apiError ? (
-                <Text style={[styles.errorText, {marginTop: '2%'}]}>
-                  {apiError}
-                </Text>
-              ) : null}
-              <View style={{marginTop: '4%'}}>
+              </TouchableOpacity>
+            )}
+            {apiError ? (
+              <Text style={[styles.errorText, {marginTop: '2%'}]}>
+                {apiError}
+              </Text>
+            ) : null}
+            <View style={{marginTop: '4%'}}>
+              <Text
+                style={{
+                  fontSize: TextSize.Tiny,
+                  color: theme.text,
+                  fontFamily: 'Poppins-Regular',
+                }}>
+                New to BookHooks?
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text
                   style={{
                     fontSize: TextSize.Tiny,
-                    color: theme.text,
-                    fontFamily: 'Poppins-Regular',
+                    color: theme.highlight,
+                    fontFamily: 'Poppins-SemiBold',
                   }}>
-                  New to BookHooks?
+                  Create an account
                 </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Register')}>
-                  <Text
-                    style={{
-                      fontSize: TextSize.Tiny,
-                      color: theme.highlight,
-                      fontFamily: 'Poppins-SemiBold',
-                    }}>
-                    Create an account
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
-          </ScrollView>
-        </SafeAreaView>
-      </TouchableWithoutFeedback>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };

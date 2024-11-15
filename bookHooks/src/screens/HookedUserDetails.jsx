@@ -55,9 +55,9 @@ const HookedUserDetails = ({route, navigation}) => {
           hooked by you.
         </Text>
         <Text style={[styles.message, {fontSize: TextSize.Small}]}>
-          {/* <Text style={{fontFamily: 'Poppins-Regular', color: theme.text}}>
+          <Text style={{fontFamily: 'Poppins-Regular', color: theme.text}}>
             Do you want to accept the request?
-          </Text> */}
+          </Text>
         </Text>
         <View style={[styles.buttonContainer]}>
           <TouchableOpacity

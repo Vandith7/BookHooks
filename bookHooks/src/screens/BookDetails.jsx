@@ -326,7 +326,7 @@ const BookDetails = ({route}) => {
                 <Text
                   style={{
                     fontFamily: 'Poppins-SemiBold',
-                    fontSize: TextSize.Small,
+                    fontSize: TextSize.Tiny,
                     color: theme.text,
                     paddingBottom: '4%',
                   }}>
@@ -390,16 +390,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   hookedBy: {
-    fontSize: TextSize.Medium,
+    fontSize: TextSize.Small,
     fontFamily: 'Poppins-SemiBold',
     marginBottom: 10,
   },
   isbn: {
-    fontSize: TextSize.Small,
+    fontSize: TextSize.Tiny,
     marginBottom: 5,
   },
   detailText: {
-    fontSize: TextSize.Small,
+    fontSize: TextSize.Tiny,
     fontFamily: 'Poppins-Regular',
     marginBottom: 5,
   },
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
   },
   description: {
-    fontSize: TextSize.Small,
+    fontSize: TextSize.Tiny,
     fontFamily: 'Poppins-Regular',
   },
   buttonContainer: {
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buyButtonText: {
-    fontSize: TextSize.Small,
+    fontSize: TextSize.Tiny,
     fontFamily: 'Poppins-Bold',
   },
   imagesOuterContainer: {
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   imagesContainerText: {
     marginTop: hp(1),
-    fontSize: TextSize.Small,
+    fontSize: TextSize.Tiny,
     fontFamily: 'Poppins-Regular',
   },
   imagesContainer: {

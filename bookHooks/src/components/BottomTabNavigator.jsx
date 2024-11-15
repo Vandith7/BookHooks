@@ -6,6 +6,8 @@ import TrackBooks from '../screens/TrackBooks';
 import Profile from '../screens/Profile';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {ThemeContext} from '../context/ThemeContext';
+import TextSize from '../TextScaling';
+import Buddies from '../screens/Buddies';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +23,8 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'HookUnhook') {
             iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'Buddies') {
+            iconName = focused ? 'people' : 'people-outline'; // Changed to people-outline
           } else if (route.name === 'Track') {
             iconName = focused ? 'list' : 'list-outline';
           } else if (route.name === 'Profile') {
@@ -39,7 +43,38 @@ const BottomTabNavigator = () => {
       })}>
       <Tab.Screen name="HomeTab" component={Home} />
       <Tab.Screen name="HookUnhook" component={HookUnhook} />
-      <Tab.Screen name="Track" component={TrackBooks} />
+      <Tab.Screen
+        name="Buddies"
+        component={Buddies}
+        options={{
+          headerShown: true,
+          headerTitle: 'Connect with buddies',
+          headerStyle: {
+            backgroundColor: theme.primary,
+          },
+          headerTitleStyle: {
+            color: theme.text,
+            fontFamily: 'Poppins-SemiBold',
+            fontSize: TextSize.Medium,
+          },
+        }}
+      />
+      <Tab.Screen
+        name="Track"
+        component={TrackBooks}
+        options={{
+          headerShown: true,
+          headerTitle: 'Track Your Reading Journey',
+          headerStyle: {
+            backgroundColor: theme.primary,
+          },
+          headerTitleStyle: {
+            color: theme.text,
+            fontFamily: 'Poppins-SemiBold',
+            fontSize: TextSize.Medium,
+          },
+        }}
+      />
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );

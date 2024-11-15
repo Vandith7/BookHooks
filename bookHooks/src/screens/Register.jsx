@@ -8,8 +8,6 @@ import {
   Text,
   TouchableOpacity,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   ActivityIndicator,
 } from 'react-native';
 import {ThemeContext} from '../context/ThemeContext';
@@ -29,6 +27,7 @@ const Register = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [userName, setUserName] = useState('');
+  const [bio, setBio] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -163,6 +162,7 @@ const Register = () => {
       userName,
       email,
       contactNumber,
+      bio,
       password,
       profileImage,
     };
@@ -244,120 +244,63 @@ const Register = () => {
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundColor: theme.primary,
+      <SafeAreaView
+        style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: theme.primary,
+        }}>
+        <ScrollView
+          keyboardShouldPersistTaps={'always'}
+          contentContainerStyle={{
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
-          <ScrollView
-            keyboardShouldPersistTaps={'always'}
-            contentContainerStyle={{
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <View style={[styles.container, {backgroundColor: theme.card}]}>
-              <View
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 20,
-                }}>
-                <Image
-                  source={logo}
-                  style={{height: 100, width: 100}}
-                  resizeMode="contain"
-                />
-              </View>
-              <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                <Text
-                  style={[
-                    styles.welcomeText,
-                    {
-                      fontSize: TextSize.Medium,
-                      color: theme.text,
-                      fontFamily: 'Poppins-SemiBold',
-                      fontWeight: '500',
-                    },
-                  ]}>
-                  Sign Up to
-                </Text>
-                <Text
-                  style={[
-                    {
-                      fontSize: TextSize.XXLarge,
-                      color: theme.primary,
-                      fontFamily: 'Merriweather-Black',
-                      marginBottom: '8%',
-                    },
-                  ]}>
-                  BookHooks
-                </Text>
-              </View>
+          <View style={[styles.container, {backgroundColor: theme.card}]}>
+            <View
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+              <Image
+                source={logo}
+                style={{height: 100, width: 100}}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+              <Text
+                style={[
+                  styles.welcomeText,
+                  {
+                    fontSize: TextSize.Medium,
+                    color: theme.text,
+                    fontFamily: 'Poppins-SemiBold',
+                    fontWeight: '500',
+                  },
+                ]}>
+                Sign Up to
+              </Text>
+              <Text
+                style={[
+                  {
+                    fontSize: TextSize.XXLarge,
+                    color: theme.primary,
+                    fontFamily: 'Merriweather-Black',
+                    marginBottom: '8%',
+                  },
+                ]}>
+                BookHooks
+              </Text>
+            </View>
 
-              {/* Name Fields */}
-              <View style={styles.nameRow}>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    styles.halfWidth,
-                    {backgroundColor: theme.secondary},
-                  ]}>
-                  <Icon
-                    name="person"
-                    size={24}
-                    color={theme.iconColor}
-                    style={styles.icon}
-                  />
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {backgroundColor: theme.inputBg, color: theme.text},
-                    ]}
-                    placeholder="First Name"
-                    placeholderTextColor={theme.placeholder}
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    onBlur={validateFirstName} // Validate on blur
-                  />
-                </View>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    styles.halfWidth,
-                    {backgroundColor: theme.secondary},
-                  ]}>
-                  <Icon
-                    name="person"
-                    size={24}
-                    color={theme.iconColor}
-                    style={styles.icon}
-                  />
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {backgroundColor: theme.inputBg, color: theme.text},
-                    ]}
-                    placeholder="Last Name"
-                    placeholderTextColor={theme.placeholder}
-                    value={lastName}
-                    onChangeText={setLastName}
-                    onBlur={validateLastName} // Validate on blur
-                  />
-                </View>
-              </View>
-              {firstNameError ? (
-                <Text style={styles.errorText}>{firstNameError}</Text>
-              ) : null}
-              {lastNameError ? (
-                <Text style={styles.errorText}>{lastNameError}</Text>
-              ) : null}
-
-              {/* Other Input Fields */}
+            {/* Name Fields */}
+            <View style={styles.nameRow}>
               <View
                 style={[
                   styles.inputContainer,
+                  styles.halfWidth,
                   {backgroundColor: theme.secondary},
                 ]}>
                 <Icon
@@ -371,23 +314,21 @@ const Register = () => {
                     styles.input,
                     {backgroundColor: theme.inputBg, color: theme.text},
                   ]}
-                  placeholder="User Name"
+                  placeholder="First Name"
                   placeholderTextColor={theme.placeholder}
-                  value={userName}
-                  onChangeText={setUserName}
-                  onBlur={validateUserName} // Validate on blur
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  onBlur={validateFirstName} // Validate on blur
                 />
               </View>
-              {userNameError ? (
-                <Text style={styles.errorText}>{userNameError}</Text>
-              ) : null}
               <View
                 style={[
                   styles.inputContainer,
+                  styles.halfWidth,
                   {backgroundColor: theme.secondary},
                 ]}>
                 <Icon
-                  name="email"
+                  name="person"
                   size={24}
                   color={theme.iconColor}
                   style={styles.icon}
@@ -397,211 +338,290 @@ const Register = () => {
                     styles.input,
                     {backgroundColor: theme.inputBg, color: theme.text},
                   ]}
-                  placeholder="Email"
+                  placeholder="Last Name"
                   placeholderTextColor={theme.placeholder}
-                  value={email}
-                  onChangeText={setEmail}
-                  onBlur={validateEmail} // Validate on blur
+                  value={lastName}
+                  onChangeText={setLastName}
+                  onBlur={validateLastName} // Validate on blur
                 />
               </View>
-              {emailError ? (
-                <Text style={styles.errorText}>{emailError}</Text>
-              ) : null}
+            </View>
+            {firstNameError ? (
+              <Text style={styles.errorText}>{firstNameError}</Text>
+            ) : null}
+            {lastNameError ? (
+              <Text style={styles.errorText}>{lastNameError}</Text>
+            ) : null}
 
-              <View
+            {/* Other Input Fields */}
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="person"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
                 style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary},
-                ]}>
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="User Name"
+                placeholderTextColor={theme.placeholder}
+                value={userName}
+                onChangeText={setUserName}
+                onBlur={validateUserName} // Validate on blur
+              />
+            </View>
+            {userNameError ? (
+              <Text style={styles.errorText}>{userNameError}</Text>
+            ) : null}
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="email"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Email"
+                placeholderTextColor={theme.placeholder}
+                value={email}
+                onChangeText={setEmail}
+                onBlur={validateEmail} // Validate on blur
+              />
+            </View>
+            {emailError ? (
+              <Text style={styles.errorText}>{emailError}</Text>
+            ) : null}
+
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="phone"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Contact Number"
+                placeholderTextColor={theme.placeholder}
+                value={contactNumber}
+                onChangeText={setContactNumber}
+                onBlur={validateContactNumber} // Validate on blur
+              />
+            </View>
+            {contactNumberError ? (
+              <Text style={styles.errorText}>{contactNumberError}</Text>
+            ) : null}
+
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="face"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                multiline={true} // Allows multi-line input
+                numberOfLines={4} // Limits the initial number of lines
+                maxHeight={60} // Adjust this value as needed
+                placeholder="Introduce yourself in a few words..."
+                placeholderTextColor={theme.placeholder}
+                value={bio}
+                onChangeText={setBio}
+              />
+            </View>
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="lock"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Password"
+                placeholderTextColor={theme.placeholder}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                onBlur={validatePassword} // Validate on blur
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Icon
-                  name="phone"
+                  style={styles.icon}
+                  name={showPassword ? 'visibility' : 'visibility-off'}
                   size={24}
                   color={theme.iconColor}
-                  style={styles.icon}
                 />
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Contact Number"
-                  placeholderTextColor={theme.placeholder}
-                  value={contactNumber}
-                  onChangeText={setContactNumber}
-                  onBlur={validateContactNumber} // Validate on blur
-                />
-              </View>
-              {contactNumberError ? (
-                <Text style={styles.errorText}>{contactNumberError}</Text>
-              ) : null}
-              <View
+              </TouchableOpacity>
+            </View>
+            {passwordError ? (
+              <Text style={styles.errorText}>{passwordError}</Text>
+            ) : null}
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
+              ]}>
+              <Icon
+                name="lock"
+                size={24}
+                color={theme.iconColor}
+                style={styles.icon}
+              />
+              <TextInput
                 style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary},
-                ]}>
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Confirm Password"
+                placeholderTextColor={theme.placeholder}
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                onBlur={validateConfirmPassword} // Validate on blur
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                 <Icon
-                  name="lock"
+                  style={styles.icon}
+                  name={showConfirmPassword ? 'visibility' : 'visibility-off'}
                   size={24}
                   color={theme.iconColor}
-                  style={styles.icon}
                 />
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Password"
-                  placeholderTextColor={theme.placeholder}
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  onBlur={validatePassword} // Validate on blur
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}>
-                  <Icon
-                    style={styles.icon}
-                    name={showPassword ? 'visibility' : 'visibility-off'}
-                    size={24}
-                    color={theme.iconColor}
-                  />
-                </TouchableOpacity>
-              </View>
-              {passwordError ? (
-                <Text style={styles.errorText}>{passwordError}</Text>
-              ) : null}
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary},
-                ]}>
-                <Icon
-                  name="lock"
-                  size={24}
-                  color={theme.iconColor}
-                  style={styles.icon}
-                />
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Confirm Password"
-                  placeholderTextColor={theme.placeholder}
-                  secureTextEntry={!showConfirmPassword}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  onBlur={validateConfirmPassword} // Validate on blur
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <Icon
-                    style={styles.icon}
-                    name={showConfirmPassword ? 'visibility' : 'visibility-off'}
-                    size={24}
-                    color={theme.iconColor}
-                  />
-                </TouchableOpacity>
-              </View>
-              {confirmPasswordError ? (
-                <Text style={styles.errorText}>{confirmPasswordError}</Text>
-              ) : null}
-              {/* Profile Image Picker */}
-              <View style={styles.profileImageContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.imagePicker,
-                    {backgroundColor: theme.secondary},
-                  ]}
-                  onPress={pickImage}>
-                  {profileImage ? (
-                    <>
-                      <Image
-                        source={{uri: profileImage}}
-                        style={styles.profileImage} // Ensure you have a style defined for image size
-                      />
-                      <TouchableOpacity
-                        style={styles.removeImageButton}
-                        onPress={removeImage}>
-                        <Icon
-                          name="close"
-                          size={24}
-                          color="white"
-                          style={styles.closeIcon}
-                        />
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <>
+              </TouchableOpacity>
+            </View>
+            {confirmPasswordError ? (
+              <Text style={styles.errorText}>{confirmPasswordError}</Text>
+            ) : null}
+            {/* Profile Image Picker */}
+            <View style={styles.profileImageContainer}>
+              <TouchableOpacity
+                style={[styles.imagePicker, {backgroundColor: theme.secondary}]}
+                onPress={pickImage}>
+                {profileImage ? (
+                  <>
+                    <Image
+                      source={{uri: profileImage}}
+                      style={styles.profileImage} // Ensure you have a style defined for image size
+                    />
+                    <TouchableOpacity
+                      style={styles.removeImageButton}
+                      onPress={removeImage}>
                       <Icon
-                        name="add-a-photo"
+                        name="close"
                         size={24}
-                        color={theme.iconColor}
+                        color="white"
+                        style={styles.closeIcon}
                       />
-                      <Text
-                        style={{
-                          color: theme.text,
-                          textAlign: 'center',
-                          fontFamily: 'Poppins-Regular',
-                          fontSize: TextSize.Tiny,
-                        }}>
-                        Pick Profile Image
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </View>
-              {loading ? (
-                <ActivityIndicator size="large" color={theme.accent2} />
-              ) : (
-                <TouchableOpacity
-                  disabled={loading}
-                  style={[
-                    styles.getStartedButton,
-                    {backgroundColor: theme.primary, elevation: 4},
-                  ]}
-                  onPress={handleRegister}>
-                  <Text
-                    style={[
-                      {
-                        fontSize: TextSize.H6,
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <Icon
+                      name="add-a-photo"
+                      size={24}
+                      color={theme.iconColor}
+                    />
+                    <Text
+                      style={{
                         color: theme.text,
-                        fontFamily: 'Poppins-Bold',
-                      },
-                    ]}>
-                    Sign Up
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {apiError ? (
-                <Text style={[styles.errorText, {marginTop: '2%'}]}>
-                  {apiError}
+                        textAlign: 'center',
+                        fontFamily: 'Poppins-Regular',
+                        fontSize: TextSize.Tiny,
+                      }}>
+                      Pick Profile Image
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+            {loading ? (
+              <ActivityIndicator size="large" color={theme.accent2} />
+            ) : (
+              <TouchableOpacity
+                disabled={loading}
+                style={[
+                  styles.getStartedButton,
+                  {backgroundColor: theme.primary, elevation: 4},
+                ]}
+                onPress={handleRegister}>
+                <Text
+                  style={[
+                    {
+                      fontSize: TextSize.H6,
+                      color: theme.text,
+                      fontFamily: 'Poppins-Bold',
+                    },
+                  ]}>
+                  Sign Up
                 </Text>
-              ) : null}
-              <View style={{marginTop: '4%'}}>
+              </TouchableOpacity>
+            )}
+            {apiError ? (
+              <Text style={[styles.errorText, {marginTop: '2%'}]}>
+                {apiError}
+              </Text>
+            ) : null}
+            <View style={{marginTop: '4%'}}>
+              <Text
+                style={{
+                  fontSize: TextSize.Tiny,
+                  color: theme.text,
+                  fontFamily: 'Poppins-Regular',
+                }}>
+                Have an account?
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text
                   style={{
                     fontSize: TextSize.Tiny,
-                    color: theme.text,
-                    fontFamily: 'Poppins-Regular',
+                    color: theme.highlight,
+                    fontFamily: 'Poppins-SemiBold',
                   }}>
-                  Have an account?
+                  Sign in here
                 </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text
-                    style={{
-                      fontSize: TextSize.Tiny,
-                      color: theme.highlight,
-                      fontFamily: 'Poppins-SemiBold',
-                    }}>
-                    Sign in here
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
-          </ScrollView>
-        </SafeAreaView>
-      </TouchableWithoutFeedback>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };

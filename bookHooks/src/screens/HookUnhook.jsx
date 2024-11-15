@@ -139,7 +139,7 @@ const HookUnhook = () => {
                 <Text
                   style={{
                     color: theme.text,
-                    fontSize: TextSize.Medium,
+                    fontSize: TextSize.Small,
                     fontFamily: 'Poppins-SemiBold',
                     textAlign: 'center',
                   }}>
@@ -166,7 +166,7 @@ const HookUnhook = () => {
                 <Text
                   style={{
                     color: theme.text,
-                    fontSize: TextSize.Small,
+                    fontSize: TextSize.Tiny,
                     fontFamily: 'Poppins-SemiBold',
                     textAlign: 'center',
                     marginTop: 10,
@@ -230,38 +230,46 @@ const HookUnhook = () => {
                     resizeMode="contain"
                     style={styles.bookImage}
                   />
-
-                  <Text
+                  <View
                     style={{
-                      color: theme.text,
-                      fontSize: TextSize.Small,
-                      fontFamily: 'Poppins-SemiBold',
-                      textAlign: 'center',
-                      marginTop: 10,
+                      height: 'auto',
+                      width: '100%',
                     }}>
-                    {item.book.title} {/* Book Title */}
-                  </Text>
-
-                  <Text
-                    style={{
-                      color: theme.text,
-                      fontSize: TextSize.Tiny,
-                      fontFamily: 'Poppins-SemiBold',
-                      textAlign: 'center',
-                    }}>
-                    Owner: {item.owner.userName}
-                  </Text>
-
-                  <Text
-                    style={{
-                      color: item.status === 'pending' ? 'orange' : 'green',
-                      fontSize: TextSize.ExtraSmall,
-                      fontFamily: 'Poppins-SemiBold',
-                      textAlign: 'center',
-                      marginTop: 5,
-                    }}>
-                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}{' '}
-                  </Text>
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: TextSize.Tiny,
+                        fontFamily: 'Poppins-SemiBold',
+                        textAlign: 'center',
+                        marginTop: 10,
+                      }}>
+                      {item.book.title} {/* Book Title */}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: TextSize.Tiny,
+                        fontFamily: 'Poppins-SemiBold',
+                        textAlign: 'center',
+                      }}>
+                      Owner: {item.owner.userName}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text
+                      style={{
+                        color: item.status === 'pending' ? 'orange' : 'green',
+                        fontSize: TextSize.Tiny,
+                        fontFamily: 'Poppins-SemiBold',
+                        textAlign: 'center',
+                        marginTop: 5,
+                      }}>
+                      {item.status.charAt(0).toUpperCase() +
+                        item.status.slice(1)}{' '}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               )}
             />
@@ -321,6 +329,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     alignItems: 'center',
     margin: 5,
+    justifyContent: 'space-between',
   },
   bookImage: {
     width: wp('32%'),

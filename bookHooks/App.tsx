@@ -12,6 +12,12 @@ import OwnBookDetails from './src/screens/OwnBookDetails';
 import RequesterDetails from './src/screens/RequesterDetails';
 import UnHookRequestDetails from './src/screens/UnHookRequestDetails';
 import HookedUserDetails from './src/screens/HookedUserDetails';
+import AddTrackBooks from './src/screens/AddTrackBooks';
+import TextSize from './src/TextScaling';
+import UpdateTrackBook from './src/screens/UpdateTrackBook';
+import Buddies from './src/screens/Buddies';
+import SearchedBuddyDetails from './src/screens/SearchedBuddyDetails';
+import BuddyTrackBook from './src/screens/BuddyTrackBook';
 
 // Define types for navigation params
 type RootStackParamList = {
@@ -20,11 +26,16 @@ type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Hook: undefined;
-  BookDetails: { book: { title: string; isbn10?: string; isbn13?: string; owner: string; author: string; bookThumbnail?: string } }; 
+  AddTrackBooks:undefined;
+  Buddies:undefined;
+  BookDetails: { book: { title: string; isbn10?: string; isbn13?: string; owner: string; author: string; bookThumbnail?: string } };
+  BuddyTrackBook: { book: { title: string; } }; 
   OwnBook: { book: { title: string; isbn10?: string; isbn13?: string; owner: string; author: string; bookThumbnail?: string } }; 
   RequesterDetails: { userName: string ; userID:string ; bookName:string ; requestId:string }; 
   UnHookRequestDetails: {title:string,request: string,owner:string,ownerName:string,status:string}; 
   HookedUserDetails:{userName: string ; userID:string ; bookName:string ; requestId:string}
+  UpdateTrackBook:{book: {BookStatus?: string,  _id?: string, author?: string,  bookThumbnail?: string, categories?: string, createdAt?: string, dateCompleted?: string, isbn10?: string, isbn13?: string, review?: string, source?: string, startDate?: string, title?:string, updatedAt?: string}}
+  SearchedBuddyDetails:{buddy:{userID:string;firstName:string;lastName:string;userName:string;profileImage:string;bio:string;joiningDate:Date}}
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -51,7 +62,7 @@ const ThemeWrapper = () => {
         headerTintColor: theme.text,
         headerTitleStyle: {
           fontFamily: 'Poppins-SemiBold',
-          fontSize: 20,
+          fontSize: TextSize.Medium,
         },
       }}
       initialRouteName="Intro"
@@ -81,6 +92,12 @@ const ThemeWrapper = () => {
         component={Hook}
         options={{ title: 'Hook your book' }}
       />
+
+      <Stack.Screen
+        name="Buddies"
+        component={Buddies}
+        options={{ title: 'Buddies' }}
+      />
       
       <Stack.Screen
         name="BookDetails"
@@ -93,6 +110,19 @@ const ThemeWrapper = () => {
           };
         }}
       />
+
+<Stack.Screen
+        name="BuddyTrackBook"
+        component={BuddyTrackBook}
+        options={({ route }) => {
+          const bookTitle = route.params.book?.title ?? 'Book Details'; 
+          return {
+            title: bookTitle,
+            headerShown: true,
+          };
+        }}
+      />
+
       <Stack.Screen
         name="OwnBook"
         component={OwnBookDetails}
@@ -117,7 +147,7 @@ const ThemeWrapper = () => {
         }}
       />
 
-<Stack.Screen
+      <Stack.Screen
         name="UnHookRequestDetails"
         component={UnHookRequestDetails}
         options={({ route }) => {
@@ -129,13 +159,42 @@ const ThemeWrapper = () => {
         }}
       />
 
-<Stack.Screen
+      <Stack.Screen
         name="HookedUserDetails"
         component={HookedUserDetails}
         options={({ route }) => {
           const bookTitle = route.params.userName ?? 'Hooked User Details'; 
           return {
             title: bookTitle,
+            headerShown: true,
+          };
+        }}
+      />
+      <Stack.Screen
+        name="AddTrackBooks"
+        component={AddTrackBooks}
+        options={{ title: 'Add Book to Your Collection' }}
+      />
+
+      <Stack.Screen
+        name="UpdateTrackBook"
+        component={UpdateTrackBook}
+        options={({ route }) => {
+          const bookTitle = route.params.book?.title ?? 'Update Book Details'; 
+          return {
+            title: bookTitle,
+            headerShown: true,
+          };
+        }}
+      />
+
+      <Stack.Screen
+        name="SearchedBuddyDetails"
+        component={SearchedBuddyDetails}
+        options={({ route }) => {
+          const buddyName = route.params.buddy?.userName ?? 'Buddy Details'; 
+          return {
+            title: buddyName,
             headerShown: true,
           };
         }}

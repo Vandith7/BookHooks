@@ -26,6 +26,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Geolocation from 'react-native-geolocation-service';
+import Snackbar from 'react-native-snackbar';
 
 const Home = ({navigation}) => {
   const [userData, setUserData] = useState(null);
@@ -61,26 +62,53 @@ const Home = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
-        navigation.navigate('Login');
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Login'}],
-        });
+        showSessionExpiredMessage();
+        navigateToLogin();
+        return;
       }
-      if (token) {
-        const response = await axios.post(`${ipv4}/user-data`, {token});
-        setUserData(response.data.data);
-      } else {
-        console.log('No token found');
-        navigation.navigate('Login');
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'Login'}],
-        });
-      }
+
+      // Validate the token or fetch user data
+      const response = await axios.post(`${ipv4}/user-data`, {token});
+
+      // Set user data if token is valid
+      setUserData(response.data.data);
     } catch (error) {
       console.error('Error fetching user data:', error);
+
+      // Handle token-related errors specifically
+      if (
+        error.response?.status === 401 ||
+        error.response?.data?.error === 'TokenExpiredError'
+      ) {
+        showSessionExpiredMessage();
+      } else {
+        Snackbar.show({
+          text: 'An error occurred while fetching user data. Please try again.',
+          duration: Snackbar.LENGTH_LONG,
+          backgroundColor: '#B08968',
+          textColor: '#FFFFFF',
+        });
+      }
+      navigateToLogin();
     }
+  };
+
+  // Helper function for showing session-expired messages
+  const showSessionExpiredMessage = () => {
+    Snackbar.show({
+      text: 'Your session has expired. Please log in again!',
+      duration: Snackbar.LENGTH_LONG,
+      backgroundColor: '#B08968',
+      textColor: '#FFFFFF',
+    });
+  };
+
+  const navigateToLogin = () => {
+    navigation.navigate('Login');
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Login'}],
+    });
   };
 
   const getOtherUserBooks = async () => {
@@ -213,7 +241,7 @@ const Home = ({navigation}) => {
                 style={[
                   {
                     color: theme.text,
-                    fontSize: TextSize.H5,
+                    fontSize: TextSize.H6,
                   },
                   styles.greetingText,
                 ]}>
@@ -221,7 +249,7 @@ const Home = ({navigation}) => {
               </Text>
               <Text
                 style={{
-                  fontSize: TextSize.H4,
+                  fontSize: TextSize.H6,
                   color: theme.text,
                   fontFamily: 'Poppins-SemiBold',
                   width: wp(80),
@@ -298,7 +326,7 @@ const Home = ({navigation}) => {
           <View style={{padding: '2%'}}>
             <Text
               style={{
-                fontSize: TextSize.H4,
+                fontSize: TextSize.H5,
                 color: theme.text,
                 fontFamily: 'Poppins-SemiBold',
                 paddingBottom: '2%',
@@ -348,6 +376,8 @@ const Home = ({navigation}) => {
                         style={styles.bookImage}
                       />
                       <Text
+                        numberOfLines={1} // Limit the title to 4 lines
+                        ellipsizeMode="tail" // Add "..." at the end if the text overflows
                         style={{
                           color: theme.text,
                           fontSize: TextSize.Small,
@@ -359,6 +389,8 @@ const Home = ({navigation}) => {
                       </Text>
 
                       <Text
+                        numberOfLines={1} // Limit the title to 4 lines
+                        ellipsizeMode="tail" // Add "..." at the end if the text overflows
                         style={{
                           color: theme.text,
                           fontSize: TextSize.Tiny,

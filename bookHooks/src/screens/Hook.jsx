@@ -9,8 +9,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   Image,
 } from 'react-native';
 import {ThemeContext} from '../context/ThemeContext';
@@ -323,304 +321,301 @@ const Hook = () => {
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundColor: theme.background,
+      <SafeAreaView
+        style={{
+          width: '100%',
+          height: '100%',
+          backgroundColor: theme.background,
+        }}>
+        <ScrollView
+          keyboardShouldPersistTaps="always"
+          contentContainerStyle={{
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
-          <ScrollView
-            keyboardShouldPersistTaps="always"
-            contentContainerStyle={{
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
+          <View
+            style={[
+              styles.container,
+              {backgroundColor: theme.card, marginTop: '8%'},
+            ]}>
+            <Text
+              style={{
+                fontFamily: 'Poppins-SemiBold',
+                fontSize: TextSize.Small,
+                color: theme.text,
+              }}>
+              Fill details of book
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'Poppins-SemiBold',
+                fontSize: TextSize.Tiny,
+                color: theme.text,
+              }}>
+              You have the flexibility to either incorporate your own custom
+              details or make use of data sourced from Google, which we will
+              retrieve on your behalf.
+            </Text>
+
             <View
               style={[
-                styles.container,
-                {backgroundColor: theme.card, marginTop: '8%'},
+                styles.inputContainer,
+                {backgroundColor: theme.secondary},
               ]}>
-              <Text
-                style={{
-                  fontFamily: 'Poppins-SemiBold',
-                  fontSize: TextSize.Medium,
-                  color: theme.text,
-                }}>
-                Fill details of book
-              </Text>
-              <Text
-                style={{
-                  fontFamily: 'Poppins-SemiBold',
-                  fontSize: TextSize.Tiny,
-                  color: theme.text,
-                }}>
-                You have the flexibility to either incorporate your own custom
-                details or make use of data sourced from Google, which we will
-                retrieve on your behalf.
-              </Text>
-
-              <View
+              <TextInput
                 style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary},
-                ]}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: inputColor, color: theme.text},
-                  ]}
-                  placeholder="Search for a book"
-                  placeholderTextColor={theme.text}
-                  value={title}
-                  onChangeText={text => {
-                    handleInputChange(setTitle, text);
-                    debouncedHandleSearch(text);
-                  }}
-                />
-                {isFetchedFromGoogle && (
-                  <Icon
-                    name="cloud-done"
-                    size={24}
-                    color={theme.primary}
-                    style={styles.fetchIcon}
-                  />
-                )}
-                {searchResults.length > 0 && (
-                  <TouchableOpacity
-                    style={styles.clearButton}
-                    onPress={handleClearSearchResults}>
-                    <Icon
-                      name="close"
-                      size={20}
-                      color={theme.text}
-                      style={styles.clearIcon}
-                    />
-                  </TouchableOpacity>
-                )}
-                {selectedBook && (
-                  <TouchableOpacity
-                    style={styles.clearButton}
-                    onPress={handleClearSelectedBook}>
-                    <Icon
-                      name="cancel"
-                      size={20}
-                      color={theme.text}
-                      style={styles.clearIcon}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {loading && (
-                <ActivityIndicator size="large" color={theme.primary} />
-              )}
-              {error ? (
-                <Text style={[styles.errorText, {color: theme.highlight}]}>
-                  {error}
-                </Text>
-              ) : (
-                <FlatList
-                  data={searchResults}
-                  renderItem={renderItem}
-                  keyExtractor={item => item.id}
-                  style={styles.resultsContainer}
-                  ListHeaderComponent={<View style={{padding: 10}}></View>}
-                />
-              )}
-              {selectedBook && (
-                <View
-                  style={[
-                    styles.detailsContainer,
-                    {backgroundColor: theme.card},
-                  ]}>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>ID:</Text>{' '}
-                    {selectedBook.id}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Title:</Text>{' '}
-                    {selectedBook.title}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Author:</Text>{' '}
-                    {selectedBook.author}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Subtitle:</Text>{' '}
-                    {selectedBook.subtitle}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Published Date:</Text>{' '}
-                    {selectedBook.publishedDate}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Page Count:</Text>{' '}
-                    {selectedBook.pageCount}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Categories:</Text>{' '}
-                    {selectedBook.categories}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Average Rating:</Text>{' '}
-                    {selectedBook.averageRating}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>Language:</Text>{' '}
-                    {selectedBook.language}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>ISBN-13:</Text>{' '}
-                    {selectedBook.isbn13}
-                  </Text>
-                  <Text style={[styles.detailText, {color: theme.text}]}>
-                    <Text style={styles.detailLabel}>ISBN-10:</Text>{' '}
-                    {selectedBook.isbn10}
-                  </Text>
-                </View>
-              )}
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary, marginBottom: '5%'},
-                ]}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Author"
-                  placeholderTextColor={theme.text}
-                  value={author}
-                  onChangeText={text => handleInputChange(setAuthor, text)}
-                />
-              </View>
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary, marginBottom: '5%'},
-                ]}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Category"
-                  placeholderTextColor={theme.text}
-                  value={categories}
-                  onChangeText={text => handleInputChange(setCategories, text)}
-                />
-              </View>
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary, marginBottom: '5%'},
-                ]}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: theme.inputBg,
-                      color: theme.text,
-                    },
-                  ]}
-                  placeholder="Description"
-                  placeholderTextColor={theme.text}
-                  value={description}
-                  onChangeText={text => handleInputChange(setDescription, text)}
-                  multiline
-                  numberOfLines={5}
-                />
-              </View>
+                  styles.input,
+                  {backgroundColor: inputColor, color: theme.text},
+                ]}
+                placeholder="Search for a book"
+                placeholderTextColor={theme.text}
+                value={title}
+                onChangeText={text => {
+                  handleInputChange(setTitle, text);
+                  debouncedHandleSearch(text);
+                }}
+              />
               {isFetchedFromGoogle && (
-                <Text
-                  style={[
-                    {
-                      marginHorizontal: '2%',
-                      marginBottom: '2%',
-                    },
-                    styles.detailText,
-                  ]}>
-                  Modifying the above book details will classify it as custom.
-                </Text>
-              )}
-              <View
-                style={[
-                  styles.inputContainer,
-                  {backgroundColor: theme.secondary, marginBottom: '5%'},
-                ]}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {backgroundColor: theme.inputBg, color: theme.text},
-                  ]}
-                  placeholder="Book condition"
-                  placeholderTextColor={theme.text}
-                  value={bookCondition}
-                  onChangeText={setBookCondition}
+                <Icon
+                  name="cloud-done"
+                  size={24}
+                  color={theme.primary}
+                  style={styles.fetchIcon}
                 />
-              </View>
-
-              {images.length < 4 && (
+              )}
+              {searchResults.length > 0 && (
                 <TouchableOpacity
-                  style={[
-                    styles.selectImagesButton,
-                    {backgroundColor: theme.primary},
-                  ]}
-                  onPress={handleSelectImages}>
-                  <Text
-                    style={{
-                      color: theme.text,
-                      fontFamily: 'Poppins-Bold',
-                      fontSize: TextSize.Small,
-                    }}>
-                    Add images of your book
-                  </Text>
+                  style={styles.clearButton}
+                  onPress={handleClearSearchResults}>
+                  <Icon
+                    name="close"
+                    size={20}
+                    color={theme.text}
+                    style={styles.clearIcon}
+                  />
                 </TouchableOpacity>
               )}
-
-              <View style={styles.imagesContainer}>
-                {images.map((image, index) => (
-                  <View key={index} style={styles.imageWrapper}>
-                    <Image source={{uri: image.uri}} style={styles.image} />
-                    <TouchableOpacity
-                      style={[
-                        styles.removeIcon,
-                        {backgroundColor: theme.accent2},
-                      ]}
-                      onPress={() => handleRemoveImage(index)}>
-                      <Icon name="close" size={16} color="#fff" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-              <GetLocation onLocationUpdate={handleLocationUpdate} />
-              {hookLoading ? (
-                <ActivityIndicator size="large" color={theme.accent2} />
-              ) : (
+              {selectedBook && (
                 <TouchableOpacity
-                  style={[
-                    styles.hookButton,
-                    {backgroundColor: theme.primary, elevation: 4},
-                  ]}
-                  onPress={handleSubmit}>
-                  <Text
-                    style={[
-                      {
-                        fontSize: TextSize.H6,
-                        color: theme.text,
-                        fontFamily: 'Poppins-Bold',
-                      },
-                    ]}>
-                    Hook Book
-                  </Text>
+                  style={styles.clearButton}
+                  onPress={handleClearSelectedBook}>
+                  <Icon
+                    name="cancel"
+                    size={20}
+                    color={theme.text}
+                    style={styles.clearIcon}
+                  />
                 </TouchableOpacity>
               )}
             </View>
-          </ScrollView>
-        </SafeAreaView>
-      </TouchableWithoutFeedback>
+
+            {loading && (
+              <ActivityIndicator size="large" color={theme.primary} />
+            )}
+            {error ? (
+              <Text style={[styles.errorText, {color: theme.highlight}]}>
+                {error}
+              </Text>
+            ) : (
+              <FlatList
+                data={searchResults}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                style={styles.resultsContainer}
+                ListHeaderComponent={<View style={{padding: 10}}></View>}
+              />
+            )}
+            {selectedBook && (
+              <View
+                style={[
+                  styles.detailsContainer,
+                  {backgroundColor: theme.card},
+                ]}>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>ID:</Text> {selectedBook.id}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Title:</Text>{' '}
+                  {selectedBook.title}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Author:</Text>{' '}
+                  {selectedBook.author}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Subtitle:</Text>{' '}
+                  {selectedBook.subtitle}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Published Date:</Text>{' '}
+                  {selectedBook.publishedDate}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Page Count:</Text>{' '}
+                  {selectedBook.pageCount}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Categories:</Text>{' '}
+                  {selectedBook.categories}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Average Rating:</Text>{' '}
+                  {selectedBook.averageRating}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>Language:</Text>{' '}
+                  {selectedBook.language}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>ISBN-13:</Text>{' '}
+                  {selectedBook.isbn13}
+                </Text>
+                <Text style={[styles.detailText, {color: theme.text}]}>
+                  <Text style={styles.detailLabel}>ISBN-10:</Text>{' '}
+                  {selectedBook.isbn10}
+                </Text>
+              </View>
+            )}
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary, marginBottom: '5%'},
+              ]}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Author"
+                placeholderTextColor={theme.text}
+                value={author}
+                onChangeText={text => handleInputChange(setAuthor, text)}
+              />
+            </View>
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary, marginBottom: '5%'},
+              ]}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Category"
+                placeholderTextColor={theme.text}
+                value={categories}
+                onChangeText={text => handleInputChange(setCategories, text)}
+              />
+            </View>
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary, marginBottom: '5%'},
+              ]}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.inputBg,
+                    color: theme.text,
+                  },
+                ]}
+                placeholder="Description"
+                placeholderTextColor={theme.text}
+                value={description}
+                onChangeText={text => handleInputChange(setDescription, text)}
+                multiline
+                numberOfLines={5}
+              />
+            </View>
+            {isFetchedFromGoogle && (
+              <Text
+                style={[
+                  {
+                    marginHorizontal: '2%',
+                    marginBottom: '2%',
+                  },
+                  styles.detailText,
+                ]}>
+                Modifying the above book details will classify it as custom.
+              </Text>
+            )}
+            <View
+              style={[
+                styles.inputContainer,
+                {backgroundColor: theme.secondary, marginBottom: '5%'},
+              ]}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {backgroundColor: theme.inputBg, color: theme.text},
+                ]}
+                placeholder="Book condition"
+                placeholderTextColor={theme.text}
+                value={bookCondition}
+                onChangeText={setBookCondition}
+              />
+            </View>
+
+            {images.length < 4 && (
+              <TouchableOpacity
+                style={[
+                  styles.selectImagesButton,
+                  {backgroundColor: theme.primary},
+                ]}
+                onPress={handleSelectImages}>
+                <Text
+                  style={{
+                    color: theme.text,
+                    fontFamily: 'Poppins-Bold',
+                    fontSize: TextSize.Small,
+                  }}>
+                  Add images of your book
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.imagesContainer}>
+              {images.map((image, index) => (
+                <View key={index} style={styles.imageWrapper}>
+                  <Image source={{uri: image.uri}} style={styles.image} />
+                  <TouchableOpacity
+                    style={[
+                      styles.removeIcon,
+                      {backgroundColor: theme.accent2},
+                    ]}
+                    onPress={() => handleRemoveImage(index)}>
+                    <Icon name="close" size={16} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            <GetLocation onLocationUpdate={handleLocationUpdate} />
+            {hookLoading ? (
+              <ActivityIndicator size="large" color={theme.accent2} />
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.hookButton,
+                  {backgroundColor: theme.primary, elevation: 4},
+                ]}
+                onPress={handleSubmit}>
+                <Text
+                  style={[
+                    {
+                      fontSize: TextSize.H6,
+                      color: theme.text,
+                      fontFamily: 'Poppins-Bold',
+                    },
+                  ]}>
+                  Hook Book
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
