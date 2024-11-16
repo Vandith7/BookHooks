@@ -8,7 +8,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {ipv4} from '../assets/others/constants';
 import {ThemeContext} from '../context/ThemeContext';
 import {
@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import TextSize from '../TextScaling';
 import axios from 'axios';
 import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
+import {useFocusEffect} from '@react-navigation/native';
 
 const Buddies = ({navigation}) => {
   const [searchQueryBuddies, setSearchQueryBuddies] = useState('');
@@ -49,34 +50,33 @@ const Buddies = ({navigation}) => {
       },
     ]);
   }, [requests]);
+  const fetchUsers = async () => {
+    if (searchQueryBuddies.trim().length < 3) {
+      setFilteredUsers([]); // Clear results if the search query is less than 3 characters
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(
+        `${ipv4}/find-users?search=${encodeURIComponent(searchQueryBuddies)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const data = await response.json();
+      setFilteredUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (searchQueryBuddies.trim().length < 3) {
-        setFilteredUsers([]); // Clear results if the search query is less than 3 characters
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await fetch(
-          `${ipv4}/find-users?search=${encodeURIComponent(searchQueryBuddies)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        const data = await response.json();
-        setFilteredUsers(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     const timeoutId = setTimeout(() => {
       fetchUsers();
     }, 500); // Debounce time: 500ms
@@ -85,24 +85,23 @@ const Buddies = ({navigation}) => {
   }, [searchQueryBuddies]);
 
   // Fetch requests from the backend (Requests Tab)
+  const fetchRequests = async () => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`${ipv4}/get-users-requests`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setRequests(response.data);
+    } catch (error) {
+      console.error('Error fetching requests:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchRequests = async () => {
-      setLoading(true);
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await axios.get(`${ipv4}/get-users-requests`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setRequests(response.data);
-      } catch (error) {
-        console.error('Error fetching requests:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRequests();
   }, []);
 
@@ -121,6 +120,35 @@ const Buddies = ({navigation}) => {
 
     setFilteredRequests(filtered);
   }, [searchQueryRequests, requests]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchRequests = async () => {
+        setLoading(true);
+        try {
+          const token = await AsyncStorage.getItem('token');
+          const response = await axios.get(`${ipv4}/get-users-requests`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setRequests(response.data);
+        } catch (error) {
+          console.error('Error fetching requests:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (index === 1) {
+        fetchRequests(); // Fetch requests only when on Requests tab
+      }
+
+      return () => {
+        // Any cleanup if needed
+      };
+    }, [index]), // Re-run when index changes (on tab change)
+  );
 
   // Scene for rendering the requests tab
   const RequestsRoute = () => (

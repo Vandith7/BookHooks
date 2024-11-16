@@ -105,7 +105,7 @@ const HookUnhook = () => {
             style={[styles.hookButton, {backgroundColor: theme.card}]}
             onPress={() => navigation.navigate('Hook')}>
             <View style={styles.iconContainer}>
-              <Icon name="book" size={24} color={theme.text} />
+              <Icon name="menu-book" size={24} color={theme.text} />
             </View>
             <Text
               style={{
@@ -157,7 +157,7 @@ const HookUnhook = () => {
       />
     ) : (
       <FlatList
-        contentContainerStyle={{alignItems: 'center'}}
+        contentContainerStyle={{alignItems: 'center', paddingBottom: hp(2)}}
         data={unhook}
         showsVerticalScrollIndicator={false}
         numColumns={2}
@@ -167,6 +167,23 @@ const HookUnhook = () => {
           <Text style={[styles.headerText, {color: theme.text}]}>
             Your UnHooks
           </Text>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Icon
+              name="menu-book"
+              size={40}
+              color={theme.text}
+              style={styles.emptyIcon}
+            />
+            <Text
+              style={[
+                styles.emptyText,
+                {fontSize: TextSize.Tiny, color: theme.text},
+              ]}>
+              No books unhooked yet.
+            </Text>
+          </View>
         }
         renderItem={({item}) => (
           <TouchableOpacity
@@ -191,6 +208,8 @@ const HookUnhook = () => {
             />
             <View>
               <Text
+                numberOfLines={1} // Limit the title to 4 lines
+                ellipsizeMode="tail" // Add "..." at the end if the text overflows
                 style={{
                   color: theme.text,
                   fontSize: TextSize.Tiny,
@@ -263,30 +282,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  toggleButton: {
-    width: wp('40%'),
-    marginHorizontal: wp('2%'),
-    paddingVertical: hp('1%'),
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  activeButton: {
-    borderColor: '#fff',
-  },
-  inactiveButton: {
-    borderColor: '#ccc',
-  },
-  toggleText: {
-    fontSize: TextSize.Small,
-    fontFamily: 'Poppins-SemiBold',
+  iconContainer: {
+    paddingBottom: hp(1),
   },
   hookButton: {
     width: wp('80%'),
@@ -313,16 +310,24 @@ const styles = StyleSheet.create({
     height: hp('24%'),
     borderRadius: 5,
   },
-  unhookView: {
-    flex: 1,
-    // justifyContent: 'center',
-    alignItems: 'center',
-  },
+
   headerText: {
     fontSize: TextSize.Small,
     fontFamily: 'Poppins-SemiBold',
-    paddingLeft: '2%',
-    paddingTop: '2%',
+    textAlign: 'center',
+    paddingTop: hp(2),
+  },
+  emptyContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: hp(5),
+  },
+  emptyIcon: {
+    marginBottom: hp(1),
+  },
+  emptyText: {
+    fontFamily: 'Poppins-Regular',
+    textAlign: 'center',
   },
 });
 

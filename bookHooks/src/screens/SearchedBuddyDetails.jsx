@@ -58,8 +58,9 @@ const SearchedBuddyDetails = ({route}) => {
       );
 
       const status = response.data.status;
+      const buddiesLength = response.data.buddiesLength;
       setBuddyRequestStatus(status); // Update buddyRequestStatus state
-
+      setConnections(buddiesLength);
       if (status === 'friend') {
         // Proceed with getting trackbooks if status is 'friend'
         const trackBooksResponse = await axios.post(
@@ -206,7 +207,6 @@ const SearchedBuddyDetails = ({route}) => {
       const response = await axios.post(`${ipv4}/user-data`, {token});
 
       // Set user data if token is valid
-      setConnections(response.data.data.buddies.length);
       setUserData(response.data.data._id);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -234,7 +234,7 @@ const SearchedBuddyDetails = ({route}) => {
     getUserData();
     fetchHookedBooks();
     checkBuddyRequestStatus();
-  }, [connections]);
+  }, [connections, buddyRequestStatus]);
 
   return (
     <ScrollView style={[styles.container, {backgroundColor: theme.background}]}>
@@ -579,38 +579,46 @@ const SearchedBuddyDetails = ({route}) => {
                 </View>
               </View>
             ) : (
-              <TouchableOpacity
-                onPress={
-                  buddyRequestStatus === 'sent'
-                    ? deleteBuddyRequest
-                    : sendBuddyRequest
-                }
-                disabled={requestLoading}
-                style={[
-                  styles.buddyRequestButton,
-                  {
-                    backgroundColor:
-                      buddyRequestStatus === 'sent'
-                        ? theme.accent1
-                        : theme.primary,
-                    elevation: 4,
-                  },
-                ]}>
-                {requestLoading ? (
-                  <ActivityIndicator size="large" color={theme.accent2} />
-                ) : (
-                  <Text
-                    style={{
-                      fontSize: TextSize.H6,
-                      color: theme.text,
-                      fontFamily: 'Poppins-Bold',
-                    }}>
-                    {buddyRequestStatus === 'sent'
-                      ? 'Buddy Request Sent'
-                      : 'Send a Buddy Request'}
-                  </Text>
-                )}
-              </TouchableOpacity>
+              <View
+                style={{
+                  width: wp(100),
+                  padding: hp(2),
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <TouchableOpacity
+                  onPress={
+                    buddyRequestStatus === 'sent'
+                      ? deleteBuddyRequest
+                      : sendBuddyRequest
+                  }
+                  disabled={requestLoading}
+                  style={[
+                    styles.buddyRequestButton,
+                    {
+                      backgroundColor:
+                        buddyRequestStatus === 'sent'
+                          ? theme.accent1
+                          : theme.primary,
+                      elevation: 4,
+                    },
+                  ]}>
+                  {requestLoading ? (
+                    <ActivityIndicator size="large" color={theme.accent2} />
+                  ) : (
+                    <Text
+                      style={{
+                        fontSize: TextSize.H6,
+                        color: theme.text,
+                        fontFamily: 'Poppins-Bold',
+                      }}>
+                      {buddyRequestStatus === 'sent'
+                        ? 'Buddy Request Sent'
+                        : 'Send a Buddy Request'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </>
@@ -674,7 +682,7 @@ const styles = StyleSheet.create({
     margin: wp('2%'),
   },
   buddyRequestButton: {
-    width: '100%',
+    width: wp(88),
     borderRadius: 8,
     alignItems: 'center',
     paddingVertical: 10,

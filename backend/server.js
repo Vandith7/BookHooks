@@ -124,7 +124,7 @@ app.post('/login', async (req, res) => {
     const trimmedPassword = password.trim();
 
     if (!trimmedLoginId || !trimmedPassword) {
-        return res.status(400).send({ status: 'Error', data: 'Login ID and Password are required.' });
+        return res.status(200).send({ status: 'Error', data: 'Login ID and Password are required.' });
     }
 
     try {
@@ -133,13 +133,13 @@ app.post('/login', async (req, res) => {
         });
 
         if (!user) {
-            return res.status(400).send({ status: 'Error', data: 'Account not found. Please check your email or username.' });
+            return res.status(200).send({ status: 'Error', data: 'Account not found. Please check your email or username.' });
         }
 
         const isMatch = await bcrypt.compare(trimmedPassword, user.password);
 
         if (!isMatch) {
-            return res.status(400).send({ status: 'Error', data: 'Incorrect password. Please try again.' });
+            return res.status(200).send({ status: 'Error', data: 'Incorrect password. Please try again.' });
         }
         const token = jwt.sign(
             { email: user.email, userName: user.userName },
@@ -282,7 +282,7 @@ app.get('/user-books', authenticateToken, async (req, res) => {
         const books = await Book.find({ owner: userId });
 
         if (books.length === 0) {
-            return res.status(404).send({ status: 'Error', data: 'No books found for this user.' });
+            return res.status(200).send({ status: 'Success', data: [], message: 'No books found for this user.' });
         }
 
         res.status(200).send({ status: 'Success', data: books });
@@ -429,7 +429,7 @@ app.get('/user-unhooks', authenticateToken, async (req, res) => {
             .populate('owner', 'userName profileImage'); // Get owner details (like name and profile image)
 
         if (!unhookRequests.length) {
-            return res.status(404).send({ status: 'Error', data: 'No unhook requests found for this user.' });
+            return res.status(200).send({ status: 'Success', data: [], message: 'No unhook requests found for this user.' });
         }
 
         res.status(200).send({ status: 'Success', data: unhookRequests });
@@ -839,7 +839,7 @@ app.post('/check-buddy-request-status', authenticateToken, async (req, res) => {
     try {
         const sender = await User.findById(senderId);
         const recipient = await User.findById(userId);
-
+        const buddiesLength = recipient.buddies.length;
         if (!sender || !recipient) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -857,7 +857,7 @@ app.post('/check-buddy-request-status', authenticateToken, async (req, res) => {
 
         // If they are already friends, return the appropriate status
         if (isFriend) {
-            return res.status(200).json({ status: 'friend' }); // Both users are friends
+            return res.status(200).json({ status: 'friend', buddiesLength }); // Both users are friends
         }
         let status = 'none'; // Default status: no requests exist
 
@@ -867,7 +867,7 @@ app.post('/check-buddy-request-status', authenticateToken, async (req, res) => {
             status = 'received'; // The current user has received a request
         }
 
-        res.status(200).json({ status });
+        res.status(200).json({ status, buddiesLength });
     } catch (error) {
         console.error('Error checking buddy request status:', error);
         res.status(500).json({ message: 'Error checking buddy request status' });
@@ -1021,7 +1021,7 @@ app.get('/get-users-requests', authenticateToken, async (req, res) => {
             .populate('buddyRequests.userId', 'firstName lastName userName profileImage bio') // Populate the userId field with the details of the user who sent the request
 
         // Filter the buddy requests to only include those that are received
-        const receivedRequests = user.buddyRequests.filter(request => request.direction === 'received');
+        const receivedRequests = user.buddyRequests.filter(request => request.direction === 'received' && request.status === 'pending');
 
         res.json(receivedRequests); // Send the received requests
     } catch (error) {
@@ -1029,3 +1029,4 @@ app.get('/get-users-requests', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Error fetching users' });
     }
 });
+

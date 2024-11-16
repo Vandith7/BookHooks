@@ -8,8 +8,6 @@ import {
   Text,
   TouchableOpacity,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   ActivityIndicator,
 } from 'react-native';
 import {ThemeContext} from '../context/ThemeContext';
@@ -22,6 +20,10 @@ import {useNavigation} from '@react-navigation/native';
 import Snackbar from 'react-native-snackbar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ipv4} from '../assets/others/constants';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const Login = () => {
   const {theme} = useContext(ThemeContext);
@@ -361,10 +363,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
-    marginBottom: 10,
-    marginLeft: '1%',
+    marginBottom: hp(2),
+    marginLeft: wp(1),
     marginTop: '-6%',
-    fontSize: 14,
+    fontSize: TextSize.Tiny,
     fontFamily: 'Poppins-Regular',
   },
   nameRow: {
