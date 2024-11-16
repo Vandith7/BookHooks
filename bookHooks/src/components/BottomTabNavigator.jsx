@@ -47,8 +47,8 @@ const BottomTabNavigator = () => {
         name="Buddies"
         component={Buddies}
         options={{
-          headerShown: true,
-          headerTitle: 'Connect with buddies',
+          headerShown: false,
+          // headerTitle: 'Connect with buddies',
           headerStyle: {
             backgroundColor: theme.primary,
           },

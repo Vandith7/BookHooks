@@ -629,6 +629,32 @@ app.post('/update-trackbook-status', authenticateToken, async (req, res) => {
     }
 });
 
+
+function getLevenshteinDistance(a, b) {
+    const matrix = [];
+
+    // Ensure a is the shorter string
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
+    for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            const cost = a[j - 1] === b[i - 1] ? 0 : 1;
+            matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
+        }
+    }
+
+    return matrix[b.length][a.length];
+}
+
+
 app.get('/find-users', authenticateToken, async (req, res) => {
     const userId = req.userId; // Get the current user's ID
     const searchQuery = req.query.search || ''; // Get the search query from the request
@@ -638,32 +664,38 @@ app.get('/find-users', authenticateToken, async (req, res) => {
     }
 
     try {
-        // Search for users who match the search query and exclude the current user
+        // Fetch users excluding the current user
         const users = await User.find({
             _id: { $ne: userId }, // Exclude current user
-            $or: [ // Search across multiple fields
-                { firstName: { $regex: searchQuery, $options: 'i' } }, // case-insensitive match
-                { lastName: { $regex: searchQuery, $options: 'i' } },
-                { userName: { $regex: searchQuery, $options: 'i' } },
-            ]
-        })
-            .select('firstName lastName userName profileImage bio joiningDate '); // Select specific fields
+        }).select('firstName lastName userName profileImage bio joiningDate '); // Select specific fields
 
-        // Apply Fuse.js for fuzzy search on the filtered users
-        const fuse = new Fuse(users, {
-            keys: ['firstName', 'lastName', 'userName'], // Fields to search
-            threshold: 0.3, // Fuzzy matching threshold (lower = stricter)
+        // Normalize the search query to lowercase for comparison
+        const normalizedQuery = searchQuery.toLowerCase();
+
+        // Set a Levenshtein distance threshold
+        const maxDistance = 2; // You can adjust this threshold based on how lenient you want the search to be
+
+        const matchedUsers = users.filter(user => {
+            // Check the distance between the search query and each field (firstName, lastName, userName)
+            const distanceFirstName = getLevenshteinDistance(normalizedQuery, user.firstName.toLowerCase());
+            const distanceLastName = getLevenshteinDistance(normalizedQuery, user.lastName.toLowerCase());
+            const distanceUserName = getLevenshteinDistance(normalizedQuery, user.userName.toLowerCase());
+
+            // If any of the distances are below the threshold, consider the user a match
+            return (
+                distanceFirstName <= maxDistance ||
+                distanceLastName <= maxDistance ||
+                distanceUserName <= maxDistance
+            );
         });
 
-        // Get the fuzzy search result
-        const result = fuse.search(searchQuery);
-        const filteredUsers = result.map(item => item.item); // Extract matched users
-        res.json(filteredUsers); // Send the filtered users
+        res.json(matchedUsers); // Return the matched users
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Error fetching users' });
     }
 });
+
 
 
 app.post('/buddy-hooked-books', async (req, res) => {

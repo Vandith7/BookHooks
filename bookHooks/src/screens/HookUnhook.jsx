@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {ThemeContext} from '../context/ThemeContext';
@@ -19,6 +20,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {TabView, SceneMap, TabBar} from 'react-native-tab-view';
 
 const HookUnhook = () => {
   const {theme} = React.useContext(ThemeContext);
@@ -26,15 +28,19 @@ const HookUnhook = () => {
   const [unhook, setUnHooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isHookView, setIsHookView] = useState(true); // State to manage hook/unhook view
   const navigation = useNavigation();
+  const [index, setIndex] = useState(0);
+  const [routes, setRoutes] = useState([
+    {key: 'hooks', title: 'Your Hooks'},
+    {key: 'unHooks', title: `Your UnHooks`},
+  ]);
 
   const fetchBooks = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${ipv4}/user-books`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use the token from AsyncStorage
+          Authorization: `Bearer ${token}`,
         },
       });
       setHookedBooks(response.data.data);
@@ -51,7 +57,7 @@ const HookUnhook = () => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${ipv4}/user-unhooks`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use the token from AsyncStorage
+          Authorization: `Bearer ${token}`,
         },
       });
       setUnHooks(response.data.data);
@@ -68,219 +74,190 @@ const HookUnhook = () => {
     fetchUnHook();
   }, []);
 
-  const handleToggle = view => {
-    setIsHookView(view === 'Hook');
-  };
-
   useFocusEffect(
     useCallback(() => {
       fetchUnHook();
     }, []),
   );
 
+  const HookRoute = () =>
+    loading ? (
+      <ActivityIndicator
+        size="large"
+        color={theme.primary}
+        style={styles.activityIndicator}
+      />
+    ) : (
+      <FlatList
+        contentContainerStyle={{alignItems: 'center'}}
+        data={hookedBooks}
+        showsVerticalScrollIndicator={false}
+        numColumns={2}
+        key={`hookedBooks-${2}`}
+        keyExtractor={item => item._id.toString()}
+        ListHeaderComponent={
+          <Text style={[styles.headerText, {color: theme.text}]}>
+            Your Hooks
+          </Text>
+        }
+        ListFooterComponent={
+          <TouchableOpacity
+            style={[styles.hookButton, {backgroundColor: theme.card}]}
+            onPress={() => navigation.navigate('Hook')}>
+            <View style={styles.iconContainer}>
+              <Icon name="book" size={24} color={theme.text} />
+            </View>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: TextSize.Small,
+                fontFamily: 'Poppins-SemiBold',
+                textAlign: 'center',
+              }}>
+              Click here to Hook your Book!
+            </Text>
+          </TouchableOpacity>
+        }
+        renderItem={({item}) => (
+          <TouchableOpacity
+            style={[styles.bookItem, {backgroundColor: theme.card}]}
+            onPress={() => navigation.navigate('OwnBook', {book: item})}>
+            <Image
+              source={
+                item.bookThumbnail
+                  ? {uri: item.bookThumbnail}
+                  : item.images.length > 0
+                  ? {uri: item.images[0]}
+                  : require('../assets/images/book-stack.png')
+              }
+              resizeMode="contain"
+              style={styles.bookImage}
+            />
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: TextSize.Tiny,
+                fontFamily: 'Poppins-SemiBold',
+                textAlign: 'center',
+                marginTop: 10,
+              }}>
+              {item.title}
+            </Text>
+          </TouchableOpacity>
+        )}
+      />
+    );
+
+  const UnHookRoute = () =>
+    loading ? (
+      <ActivityIndicator
+        size="large"
+        color={theme.primary}
+        style={styles.activityIndicator}
+      />
+    ) : (
+      <FlatList
+        contentContainerStyle={{alignItems: 'center'}}
+        data={unhook}
+        showsVerticalScrollIndicator={false}
+        numColumns={2}
+        key={`unhook-${2}`}
+        keyExtractor={item => item._id.toString()}
+        ListHeaderComponent={
+          <Text style={[styles.headerText, {color: theme.text}]}>
+            Your UnHooks
+          </Text>
+        }
+        renderItem={({item}) => (
+          <TouchableOpacity
+            style={[styles.bookItem, {backgroundColor: theme.card}]}
+            onPress={() =>
+              navigation.navigate('UnHookRequestDetails', {
+                title: item.book.title,
+                request: item._id,
+                owner: item.owner._id,
+                ownerName: item.owner.userName,
+                status: item.status,
+              })
+            }>
+            <Image
+              source={
+                item.book.bookThumbnail
+                  ? {uri: item.book.bookThumbnail}
+                  : require('../assets/images/book-stack.png')
+              }
+              resizeMode="contain"
+              style={styles.bookImage}
+            />
+            <View>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: TextSize.Tiny,
+                  fontFamily: 'Poppins-SemiBold',
+                  textAlign: 'center',
+                  marginTop: 10,
+                }}>
+                {item.book.title}
+              </Text>
+            </View>
+            <View>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: TextSize.Tiny,
+                  fontFamily: 'Poppins-SemiBold',
+                  textAlign: 'center',
+                }}>
+                Owner: {item.owner.userName}
+              </Text>
+            </View>
+            <View>
+              <Text
+                style={{
+                  color: item.status === 'pending' ? 'orange' : 'green',
+                  fontSize: TextSize.Tiny,
+                  fontFamily: 'Poppins-SemiBold',
+                  textAlign: 'center',
+                  marginTop: 5,
+                }}>
+                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+    );
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: theme.background}}>
       <View style={styles.container}>
-        {/* Toggle Buttons for Hook/Unhook */}
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              isHookView ? styles.activeButton : styles.inactiveButton,
-              {backgroundColor: isHookView ? theme.primary : theme.card},
-            ]}
-            onPress={() => handleToggle('Hook')}>
-            <Text
-              style={[
-                styles.toggleText,
-                {color: isHookView ? theme.text : theme.text},
-              ]}>
-              Hooks
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              !isHookView ? styles.activeButton : styles.inactiveButton,
-              {backgroundColor: !isHookView ? theme.primary : theme.card},
-            ]}
-            onPress={() => handleToggle('Unhook')}>
-            <Text
-              style={[
-                styles.toggleText,
-                {color: !isHookView ? theme.text : theme.text},
-              ]}>
-              Unhooks
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {isHookView ? (
-          // Hook View
-          <FlatList
-            contentContainerStyle={{alignItems: 'center'}}
-            data={hookedBooks}
-            showsVerticalScrollIndicator={false}
-            numColumns={2}
-            key={`hookedBooks-${2}`}
-            keyExtractor={item => item._id.toString()}
-            ListHeaderComponent={
-              <Text style={[styles.headerText, {color: theme.text}]}>
-                Your Hooks
-              </Text>
-            }
-            ListFooterComponent={
-              <TouchableOpacity
-                style={[styles.hookButton, {backgroundColor: theme.card}]}
-                onPress={() => navigation.navigate('Hook')}>
-                <View style={styles.iconContainer}>
-                  <Icon name="book" size={24} color={theme.text} />
-                </View>
-                <Text
-                  style={{
-                    color: theme.text,
-                    fontSize: TextSize.Small,
-                    fontFamily: 'Poppins-SemiBold',
-                    textAlign: 'center',
-                  }}>
-                  Click here to Hook your Book!
-                </Text>
-              </TouchableOpacity>
-            }
-            renderItem={({item}) => (
-              <TouchableOpacity
-                style={[styles.bookItem, {backgroundColor: theme.card}]}
-                onPress={() => navigation.navigate('OwnBook', {book: item})}>
-                <Image
-                  source={
-                    item.bookThumbnail
-                      ? {uri: item.bookThumbnail}
-                      : item.images.length > 0
-                      ? {uri: item.images[0]}
-                      : require('../assets/images/book-stack.png')
-                  }
-                  resizeMode="contain"
-                  style={styles.bookImage}
-                />
-
-                <Text
-                  style={{
-                    color: theme.text,
-                    fontSize: TextSize.Tiny,
-                    fontFamily: 'Poppins-SemiBold',
-                    textAlign: 'center',
-                    marginTop: 10,
-                  }}>
-                  {item.title}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-        ) : (
-          // Unhook View
-          <View style={styles.unhookView}>
-            {/* <Text
-              style={{
+        <TabView
+          navigationState={{index, routes}}
+          renderScene={SceneMap({
+            hooks: HookRoute,
+            unHooks: UnHookRoute,
+          })}
+          onIndexChange={setIndex}
+          initialLayout={{width: wp('100%')}}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              indicatorStyle={{backgroundColor: theme.text}}
+              style={{backgroundColor: theme.primary}}
+              labelStyle={{
                 color: theme.text,
-                fontSize: TextSize.H4,
                 fontFamily: 'Poppins-SemiBold',
-                textAlign: 'center',
-                paddingLeft: '2%',
-                paddingTop: '2%',
-              }}>
-              Your Unhooks
-            </Text> */}
-            {/* Add content for Unhook functionality */}
-            <FlatList
-              contentContainerStyle={{alignItems: 'center'}}
-              data={unhook} // Assuming 'unhook' contains the unhook requests from API
-              showsVerticalScrollIndicator={false}
-              numColumns={2}
-              key={`unhook-${2}`}
-              keyExtractor={item => item._id.toString()}
-              ListHeaderComponent={
-                <Text style={[styles.headerText, {color: theme.text}]}>
-                  Your UnHooks
-                </Text>
-              }
-              renderItem={({item}) => (
-                <TouchableOpacity
-                  style={[
-                    styles.bookItem,
-                    {
-                      backgroundColor: theme.card,
-                    },
-                  ]}
-                  onPress={() => {
-                    console.log(item),
-                      navigation.navigate('UnHookRequestDetails', {
-                        title: item.book.title,
-                        request: item._id,
-                        owner: item.owner._id,
-                        ownerName: item.owner.userName,
-                        status: item.status,
-                      });
-                  }}>
-                  <Image
-                    source={
-                      item.book.bookThumbnail
-                        ? {uri: item.book.bookThumbnail}
-                        : require('../assets/images/book-stack.png')
-                    }
-                    resizeMode="contain"
-                    style={styles.bookImage}
-                  />
-                  <View
-                    style={{
-                      height: 'auto',
-                      width: '100%',
-                    }}>
-                    <Text
-                      style={{
-                        color: theme.text,
-                        fontSize: TextSize.Tiny,
-                        fontFamily: 'Poppins-SemiBold',
-                        textAlign: 'center',
-                        marginTop: 10,
-                      }}>
-                      {item.book.title} {/* Book Title */}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text
-                      style={{
-                        color: theme.text,
-                        fontSize: TextSize.Tiny,
-                        fontFamily: 'Poppins-SemiBold',
-                        textAlign: 'center',
-                      }}>
-                      Owner: {item.owner.userName}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text
-                      style={{
-                        color: item.status === 'pending' ? 'orange' : 'green',
-                        fontSize: TextSize.Tiny,
-                        fontFamily: 'Poppins-SemiBold',
-                        textAlign: 'center',
-                        marginTop: 5,
-                      }}>
-                      {item.status.charAt(0).toUpperCase() +
-                        item.status.slice(1)}{' '}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
+              }}
+              activeColor={theme.text}
+              inactiveColor={theme.secondary}
             />
-          </View>
-        )}
+          )}
+        />
       </View>
     </SafeAreaView>
   );
 };
-
-export default HookUnhook;
 
 const styles = StyleSheet.create({
   container: {
@@ -308,7 +285,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   toggleText: {
-    fontSize: TextSize.Medium,
+    fontSize: TextSize.Small,
     fontFamily: 'Poppins-SemiBold',
   },
   hookButton: {
@@ -342,9 +319,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerText: {
-    fontSize: TextSize.H4,
+    fontSize: TextSize.Small,
     fontFamily: 'Poppins-SemiBold',
     paddingLeft: '2%',
     paddingTop: '2%',
   },
 });
+
+export default HookUnhook;
