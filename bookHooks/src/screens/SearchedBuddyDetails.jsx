@@ -29,6 +29,7 @@ const SearchedBuddyDetails = ({route}) => {
   const [buddyTrackBooks, setBuddyTrackBooks] = useState([]);
   const [connections, setConnections] = useState('');
   const [buddyRequestStatus, setBuddyRequestStatus] = useState('none');
+  const [chatId, setChatId] = useState('');
   const {theme} = React.useContext(ThemeContext);
   const [userData, setUserData] = useState(null);
   const navigation = useNavigation(); // Access navigation
@@ -47,6 +48,27 @@ const SearchedBuddyDetails = ({route}) => {
       setLoading(false);
     }
   }, [buddy._id]);
+
+  useEffect(() => {
+    const fetchChat = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const chatIdResponse = await axios.get(
+          `${ipv4}/chat-api/get-chats/${buddy._id}`, // Adjusted API endpoint
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          },
+        );
+        setChatId(chatIdResponse.data.chatId);
+      } catch (error) {
+        console.error('Error fetching chat:', error);
+      }
+    };
+
+    if (buddy) {
+      fetchChat();
+    }
+  }, [buddy]); // Only trigger effect when buddy changes
 
   const checkBuddyRequestStatus = useCallback(async () => {
     try {
@@ -299,6 +321,29 @@ const SearchedBuddyDetails = ({route}) => {
               ]}>
               {buddy.bio}
             </Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('ChatScreen', {
+                  chatId: chatId,
+                  user: buddy,
+                })
+              }
+              style={[
+                styles.buddyChatButton,
+                {
+                  backgroundColor: theme.accent1,
+                  elevation: 4,
+                },
+              ]}>
+              <Text
+                style={{
+                  fontSize: TextSize.H6,
+                  color: theme.text,
+                  fontFamily: 'Poppins-Bold',
+                }}>
+                Chat with {buddy.userName}
+              </Text>
+            </TouchableOpacity>
           </View>
           <View
             style={[styles.hookDetailsContainer, {borderTopColor: theme.text}]}>
@@ -685,8 +730,17 @@ const styles = StyleSheet.create({
     width: wp(88),
     borderRadius: 8,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: hp(1.5),
     marginTop: '8%',
+    marginBottom: hp(4),
+  },
+  buddyChatButton: {
+    width: wp(88),
+    borderRadius: 8,
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingVertical: hp(1.5),
+    // marginTop: '8%',
   },
   bookImage: {
     width: '100%',

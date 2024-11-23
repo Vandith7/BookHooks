@@ -18,6 +18,11 @@ import UpdateTrackBook from './src/screens/UpdateTrackBook';
 import Buddies from './src/screens/Buddies';
 import SearchedBuddyDetails from './src/screens/SearchedBuddyDetails';
 import BuddyTrackBook from './src/screens/BuddyTrackBook';
+import ChatsListScreen from './src/screens/ChatListsScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import { Image, TouchableOpacity, View } from 'react-native';
+import SocketProvider from './src/context/SocketContext';
+import { ChatProvider } from './src/context/ChatContext';
 
 // Define types for navigation params
 type RootStackParamList = {
@@ -28,6 +33,8 @@ type RootStackParamList = {
   Hook: undefined;
   AddTrackBooks:undefined;
   Buddies:undefined;
+  ChatsListScreen:undefined;
+  ChatScreen:{ user: { userName: string;profileImage:string  } };
   BookDetails: { book: { title: string; isbn10?: string; isbn13?: string; owner: string; author: string; bookThumbnail?: string } };
   BuddyTrackBook: { book: { title: string; } }; 
   OwnBook: { book: { title: string; isbn10?: string; isbn13?: string; owner: string; author: string; bookThumbnail?: string } }; 
@@ -42,11 +49,15 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
+    <ChatProvider>
+    <SocketProvider>
     <ThemeProvider>
       <NavigationContainer>
         <ThemeWrapper />
       </NavigationContainer>
     </ThemeProvider>
+    </SocketProvider>
+    </ChatProvider>
   );
 };
 
@@ -98,6 +109,42 @@ const ThemeWrapper = () => {
         component={Buddies}
         options={{ title: 'Buddies' }}
       />
+
+<Stack.Screen
+        name="ChatsListScreen"
+        component={ChatsListScreen}
+        options={{ title: 'Chats' ,headerShown:true}}
+      />
+
+      
+<Stack.Screen
+  name="ChatScreen"
+  component={ChatScreen}
+  options={({ route, navigation }) => {
+    const userName = route.params.user?.userName ?? 'Chat Screen'; 
+    const profileImage = route.params.user?.profileImage;
+
+    return {
+      title: userName,
+      headerShown: true,
+      headerRight: () => (
+        <TouchableOpacity onPress={() => 
+          navigation.navigate('SearchedBuddyDetails', { buddy: route.params.user })
+        }>
+          <Image 
+            source={
+              profileImage
+                ? { uri: profileImage }
+                : require('./src/assets/images/default.jpg') // Placeholder if no profile image
+            }
+            style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }} 
+          />
+        </TouchableOpacity>
+      ),
+    };
+  }}
+/>
+
       
       <Stack.Screen
         name="BookDetails"

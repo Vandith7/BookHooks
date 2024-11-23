@@ -193,6 +193,7 @@ const OwnBookDetails = ({route}) => {
                     navigation.navigate('HookedUserDetails', {
                       userName: requestAccepted.requester.userName,
                       userID: requestAccepted.requester._id,
+                      profileImage: requestAccepted.requester.profileImage,
                       bookName: book.title,
                       requestId: requestAccepted._id,
                     })

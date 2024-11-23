@@ -211,7 +211,7 @@ const AddTrackBooks = () => {
     }
 
     if (
-      bookStatus == 'reading' ||
+      (bookStatus == 'reading' && startDate == null) ||
       (bookStatus == 'completed' && startDate == null)
     ) {
       Snackbar.show({

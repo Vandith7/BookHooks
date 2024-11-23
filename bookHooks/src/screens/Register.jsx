@@ -392,6 +392,8 @@ const Register = () => {
                 style={styles.icon}
               />
               <TextInput
+                keyboardType="email-address"
+                autoCapitalize="none"
                 style={[
                   styles.input,
                   {backgroundColor: theme.inputBg, color: theme.text},
@@ -419,6 +421,7 @@ const Register = () => {
                 style={styles.icon}
               />
               <TextInput
+                keyboardType="numeric"
                 style={[
                   styles.input,
                   {backgroundColor: theme.inputBg, color: theme.text},

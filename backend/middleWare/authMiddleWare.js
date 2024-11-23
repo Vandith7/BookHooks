@@ -12,7 +12,13 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, user) => {
         if (err) {
-            return res.status(403).send({ status: 'Error', data: 'Invalid token.' });
+            if (err.name === 'TokenExpiredError') {
+                // Specific error for expired token
+                return res.status(401).json({ status: 'Error', data: 'Token has expired. Please log in again.' });
+            } else if (err.name === 'JsonWebTokenError') {
+                // General JWT error (e.g., malformed token)
+                return res.status(401).json({ status: 'Error', data: 'Invalid token. Please log in again.' });
+            }
         }
 
         try {

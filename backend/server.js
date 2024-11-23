@@ -13,7 +13,9 @@ const fs = require('fs');
 const sharp = require('sharp');
 const TrackBook = require("./Schema/TrackBooks");
 const Fuse = require('fuse.js');
-
+const http = require("http");
+const { Server } = require("socket.io");
+const Chat = require("./Schema/ChatDetails");
 
 require('dotenv').config();
 
@@ -32,9 +34,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Increase limit as needed
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-app.listen(5001, '0.0.0.0', () => {
-    console.log("Node js server started on port 5001");
-});
+// app.listen(5001, '0.0.0.0', () => {
+//     console.log("Node js server started on port 5001");
+// });
 mongoose.connect(mongoUrl)
     .then(() => {
         console.log("Database connected");
@@ -156,40 +158,24 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.post('/user-data', async (req, res) => {
-    const { token } = req.body;
-
-    if (!token) {
-        return res.status(400).send({ status: 'Error', data: 'Token is required.' });
-    }
+app.post('/user-data', authenticateToken, async (req, res) => {
+    const userId = req.userId; // This is guaranteed to be set by the middleware
 
     try {
-        const decoded = jwt.verify(token, jwt_secret_key);
+        // Find user by userId
+        const user = await User.findById(userId);
 
-        const userEmail = decoded.email;
-        const userName = decoded.userName;
-
-        const user = await User.findOne({
-            $or: [{ email: userEmail }, { userName: userName }]
-        });
-
+        // If no user is found
         if (!user) {
-            return res.status(404).send({ status: 'Error', data: 'User not found.' });
+            return res.status(404).json({ status: 'Error', data: 'User not found.' });
         }
-        res.status(200).send({ status: 'Success', data: user });
+
+        // Return user data if found
+        return res.status(200).json({ status: 'Success', data: user });
     } catch (error) {
-        console.error("Token verification error:", error);
-
-        if (error.name === 'TokenExpiredError') {
-            // Specific error for token expiration
-            return res.status(401).send({ status: 'Error', data: 'Token has expired. Please log in again.' });
-        } else if (error.name === 'JsonWebTokenError') {
-            // General JWT error
-            return res.status(401).send({ status: 'Error', data: 'Invalid token. Please log in again.' });
-        }
-
-        // Catch-all for other errors
-        res.status(500).send({ status: 'Error', data: 'Something went wrong.' });
+        // Handle unexpected errors
+        console.error("Error while fetching user data:", error);
+        return res.status(500).json({ status: 'Error', data: 'Something went wrong on the server.' });
     }
 });
 
@@ -293,22 +279,11 @@ app.get('/user-books', authenticateToken, async (req, res) => {
 });
 
 
-app.post('/hooked-books', async (req, res) => {
-    const { token } = req.body;
-
-    if (!token) {
-        return res.status(400).send({ status: 'Error', data: 'Token is required.' });
-    }
-
+app.post('/hooked-books', authenticateToken, async (req, res) => {
+    const userId = req.userId;
     try {
-        const decoded = jwt.verify(token, jwt_secret_key);
 
-        const userEmail = decoded.email;
-        const userName = decoded.userName;
-
-        const currentUser = await User.findOne({
-            $or: [{ email: userEmail }, { userName: userName }]
-        });
+        const currentUser = await User.findById(userId);
 
         if (!currentUser) {
             return res.status(404).send({ status: 'Error', data: 'User not found.' });
@@ -1030,3 +1005,300 @@ app.get('/get-users-requests', authenticateToken, async (req, res) => {
     }
 });
 
+
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST", "DELETE"],
+    },
+});
+// Socket.io connection for real-time communication
+
+
+server.listen(5001, '0.0.0.0', () => {
+    console.log("Server with Socket.io running on port 5001");
+});
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    socket.on("join_chat", (chatId) => {
+        socket.join(chatId);
+        console.log(`User joined chat: ${chatId}`);
+    });
+
+    socket.on('typing', (data) => {
+        if (data.chatId) {
+            socket.to(data.chatId).emit('typing', data); // Emit to everyone except the sender
+        } else {
+            console.log('No chatId provided in typing event');
+        }
+    });
+
+    // Emit 'stop_typing' event to others in the chat
+    socket.on('stop_typing', (data) => {
+        if (data.chatId) {
+            socket.to(data.chatId).emit('stop_typing', data); // Emit to everyone except the sender
+        } else {
+            console.log('No chatId provided in stop_typing event');
+        }
+    });
+
+    // socket.on("send_message", (data) => {
+    //     io.to(data.chatId).emit("receive_message", data);
+    //     console.log("Message sent:", data);
+    // });
+
+    socket.on("read_receipt", async (data) => {
+        const { chatId, messageId, userId } = data;
+        try {
+            // Find the chat and the specific message
+            const chat = await Chat.findById(chatId);
+
+            if (!chat) {
+                return socket.emit("error", { message: "Chat not found" });
+            }
+
+            const message = chat.messages.id(messageId);
+            if (!message) {
+                return socket.emit("error", { message: "Message not found" });
+            }
+
+            // Check if the message is already read
+            if (message.isRead) {
+                return;
+            }
+
+            // Mark the message as read
+            message.isRead = true;
+            await chat.save();
+
+            // Decrement the unread count for the user who read the message
+            const currentUnreadCount = chat.unreadCount.get(userId) || 0;
+            if (currentUnreadCount > 0) {
+                chat.unreadCount.set(userId, 0);
+                await chat.save();
+            }
+
+            // Emit the read receipt to all participants in the chat
+            io.to(chatId).emit("message_read", {
+                messageId,
+                userId,  // Sender of the read receipt
+                isRead: true,
+                updatedAt: message.updatedAt,
+            });
+
+            console.log(`Message ${messageId} marked as read by ${userId}`);
+        } catch (error) {
+            console.error("Error marking message as read:", error);
+            socket.emit("error", { message: "Failed to update read receipt" });
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
+});
+
+app.get('/chat-api/chats', authenticateToken, async (req, res) => {
+    const userId = req.userId;
+    try {
+        const chats = await Chat.find({ participants: userId, 'lastMessage.text': { $exists: true } })
+            .populate('participants', 'userName profileImage') // Get user details
+            .select('lastMessage participants unreadCount')
+            .sort({ 'lastMessage.timestamp': -1 }); // Sort by latest lastMessage timestamp in descending order
+
+        if (!chats.length) {
+            return res.status(200).send({ status: 'Success', data: [], message: 'No chats found.' });
+        }
+
+        res.status(200).send({ status: 'Success', data: chats });
+    } catch (error) {
+        console.error("Error fetching chats:", error);
+        res.status(500).send({ status: 'Error', data: 'Internal server error' });
+    }
+});
+
+
+app.get('/chat-api/chats/:chatId', authenticateToken, async (req, res) => {
+    try {
+        const chat = await Chat.findById(req.params.chatId)
+            .populate('participants', '_id')
+            .populate({
+                path: 'messages',
+                model: 'Message',
+                populate: {
+                    path: 'sender',
+                    model: 'UserInfo', // Populate sender details for each message
+                    select: '_id',
+                },
+            });
+
+        if (!chat) {
+            return res.status(404).json({ error: 'Chat not found' });
+        }
+
+        // Reverse the order of the messages to show the newest messages first
+        chat.messages.reverse();
+
+
+
+        res.status(200).json({ data: chat });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching chat details' });
+    }
+});
+
+
+
+// Route to send a new message to a chat
+app.post('/chat-api/chats/:chatId/messages', authenticateToken, async (req, res) => {
+    try {
+        const { chatId } = req.params;
+        const { text } = req.body;
+        const sender = req.userId; // Current user's ID from the token
+
+        // Find the chat by its ID
+        const chat = await Chat.findById(chatId);
+
+        if (!chat) {
+            return res.status(404).send({ message: 'Chat not found.' });
+        }
+
+        if (!chat.participants.includes(sender)) {
+            return res.status(403).send({ message: 'You are not a participant in this chat.' });
+        }
+
+        // Create a new message
+        const message = {
+            sender, // Include sender ID
+            text,
+            timestamp: new Date(),
+        };
+
+        // Add the message to the chat
+        chat.messages.push(message);
+        chat.lastMessage = {
+            text,
+            sender,  // Add sender to lastMessage
+            timestamp: new Date(),
+        };
+
+        // Increment unread count for all participants except the sender
+        chat.participants.forEach((participant) => {
+            if (participant.toString() !== sender.toString()) {
+                chat.unreadCount.set(participant.toString(), (chat.unreadCount.get(participant.toString()) || 0) + 1);
+            }
+        });
+
+
+        // Save the chat with the new message
+        await chat.save();
+
+        // Retrieve the newly added message (last one in the array) to include the `_id`
+        const newMessage = chat.messages[chat.messages.length - 1];
+
+        // Emit the new message to the socket for real-time updates
+        io.to(chatId).emit('receive_message', { lastMessage: chat.lastMessage, unreadCount: chat.unreadCount, newMessage });
+
+        // Respond with the new message
+        res.status(200).send({ data: newMessage });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).send({ message: 'Internal server error.' });
+    }
+});
+
+app.get('/user-api/current', authenticateToken, async (req, res) => {
+    const userId = req.userId; // Get the userId from the authenticated token
+
+    try {
+        // Find the user by userId
+        const user = await User.findById(userId).select('firstName lastName userName');
+
+        if (!user) {
+            return res.status(404).send({ status: 'Error', message: 'User not found' });
+        }
+
+        res.status(200).send({ status: 'Success', data: user });
+    } catch (error) {
+        console.error('Error fetching current user details:', error);
+        res.status(500).send({ status: 'Error', message: 'Internal server error' });
+    }
+});
+
+app.get('/chat-api/get-chats/:userId', authenticateToken, async (req, res) => {
+    const currentUserId = req.userId;  // Get the authenticated user ID from the token
+    const otherUserId = req.params.userId;  // Get the other user's ID from the URL params
+
+    if (currentUserId === otherUserId) {
+        return res.status(400).json({ error: "You can't chat with yourself." });
+    }
+
+    try {
+        // Check if a chat already exists between the two users
+        let chat = await Chat.findOne({
+            participants: { $all: [currentUserId, otherUserId] },  // Match both users in the participants array
+        });
+
+        if (chat) {
+            // Chat exists, return the chatId
+            return res.status(200).json({ chatId: chat._id });
+        }
+
+        // No chat exists, create a new chat
+        const newChat = new Chat({
+            participants: [currentUserId, otherUserId],
+            messages: [],  // Start with an empty messages array
+            lastMessage: null,  // No last message yet
+            unreadCount: {
+                [currentUserId]: 0,  // Initialize unread count for both users
+                [otherUserId]: 0,
+            },
+        });
+
+        await newChat.save();
+
+        // Return the new chatId
+        return res.status(201).json({ chatId: newChat._id });
+
+    } catch (error) {
+        console.error('Error fetching or creating chat:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+app.delete('/chats/:chatId/messages/:messageId', authenticateToken, async (req, res) => {
+    const { chatId, messageId } = req.params;
+    const userId = req.userId; // Get the logged-in user from authentication
+
+    try {
+        // Find the chat and the message
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            return res.status(404).json({ message: 'Chat not found' });
+        }
+        // Find the message within the chat
+        const message = chat.messages.id(messageId);
+
+
+
+        await message.deleteOne();
+        if (message.sender.toString() !== userId.toString()) {
+            return res.status(403).json({ message: 'You can only delete your own messages' });
+        }
+        if (chat.messages.length === 0) {
+            // No messages left, clear the lastMessage field
+            chat.lastMessage = {};
+        }
+        // Save the chat after deletion
+        await chat.save();
+
+        res.status(200).json({ message: 'Message deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});

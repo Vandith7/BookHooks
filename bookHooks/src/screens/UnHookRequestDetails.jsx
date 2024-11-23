@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {ThemeContext} from '../context/ThemeContext';
 import axios from 'axios';
 import {ipv4} from '../assets/others/constants';
@@ -15,11 +15,13 @@ import {
 } from 'react-native-responsive-screen';
 import TextSize from '../TextScaling';
 import Snackbar from 'react-native-snackbar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const UnHookRequestDetails = ({route, navigation}) => {
   const {theme} = useContext(ThemeContext);
-  const {title, request, owner, ownerName, status} = route.params;
-
+  const {title, request, owner, ownerName, profileImage, status} = route.params;
+  const [chatId, setChatId] = useState('');
+  const user = {userName: ownerName, profileImage: profileImage};
   const deleteRequest = async () => {
     try {
       const response = await axios.post(`${ipv4}/delete-unhook-request`, {
@@ -38,6 +40,27 @@ const UnHookRequestDetails = ({route, navigation}) => {
       console.error('Error deleting unhook request:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchChat = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const chatIdResponse = await axios.get(
+          `${ipv4}/chat-api/get-chats/${owner}`, // Adjusted API endpoint
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          },
+        );
+        setChatId(chatIdResponse.data.chatId);
+      } catch (error) {
+        console.error('Error fetching chat:', error);
+      }
+    };
+
+    if (owner) {
+      fetchChat();
+    }
+  }, [owner]);
 
   return (
     <ScrollView
@@ -80,6 +103,12 @@ const UnHookRequestDetails = ({route, navigation}) => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('ChatScreen', {
+                chatId: chatId,
+                user: user,
+              })
+            }
             style={[
               styles.buyButton,
               {backgroundColor: theme.primary, width: '100%'},

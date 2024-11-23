@@ -19,7 +19,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {ThemeContext} from '../context/ThemeContext';
 import TextSize from '../TextScaling';
 import {ipv4} from '../assets/others/constants';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import {
   widthPercentageToDP as wp,
@@ -61,27 +62,44 @@ const Home = ({navigation}) => {
   const getUserData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
+
+      // If no token is found, show session expired message and navigate to login
       if (!token) {
         showSessionExpiredMessage();
         navigateToLogin();
         return;
       }
 
-      // Validate the token or fetch user data
-      const response = await axios.post(`${ipv4}/user-data`, {token});
+      // Make the API request with the token in the Authorization header
+      const response = await axios.post(
+        `${ipv4}/user-data`,
+        {}, // Empty body, assuming the endpoint does not need a payload
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+      );
 
-      // Set user data if token is valid
+      // If the response is successful, set the user data
       setUserData(response.data.data);
     } catch (error) {
       console.error('Error fetching user data:', error);
 
-      // Handle token-related errors specifically
-      if (
-        error.response?.status === 401 ||
-        error.response?.data?.error === 'TokenExpiredError'
-      ) {
-        showSessionExpiredMessage();
+      // Handle specific errors based on the response status or error message
+      if (error.response?.status === 401) {
+        // Token has expired or is invalid
+        if (error.response?.data?.error === 'TokenExpiredError') {
+          showSessionExpiredMessage();
+        } else {
+          // For other 401 errors
+          Snackbar.show({
+            text: 'Your session has expired. Please log in again.',
+            duration: Snackbar.LENGTH_LONG,
+            backgroundColor: '#B08968',
+            textColor: '#FFFFFF',
+          });
+        }
       } else {
+        // Handle any other errors (e.g., network issues, server errors)
         Snackbar.show({
           text: 'An error occurred while fetching user data. Please try again.',
           duration: Snackbar.LENGTH_LONG,
@@ -89,6 +107,8 @@ const Home = ({navigation}) => {
           textColor: '#FFFFFF',
         });
       }
+
+      // Navigate to login screen after showing an error
       navigateToLogin();
     }
   };
@@ -115,8 +135,15 @@ const Home = ({navigation}) => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
-        const response = await axios.post(`${ipv4}/hooked-books`, {token});
+        const response = await axios.post(
+          `${ipv4}/hooked-books`,
+          {}, // Empty body, assuming the endpoint does not need a payload
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          },
+        );
         // console.log(response.data.data);
+        console.log(response);
         setOtherUserBooks(response.data.data);
       }
     } catch (error) {
@@ -265,8 +292,16 @@ const Home = ({navigation}) => {
               }}>
               <TouchableOpacity
                 style={styles.chatButton}
-                onPress={() => console.log('chat')}>
-                <Icon name="chat" size={TextSize.Large} color={theme.text} />
+                onPress={() =>
+                  navigation.navigate('ChatsListScreen', {
+                    currentUserId,
+                  })
+                }>
+                <IoniconsIcon
+                  name="chatbubbles"
+                  size={TextSize.Large}
+                  color={theme.text}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -289,7 +324,7 @@ const Home = ({navigation}) => {
                 setSearchQuery(text);
               }}
             />
-            <Icon
+            <MaterialIcon
               name="search"
               size={24}
               color={theme.text}

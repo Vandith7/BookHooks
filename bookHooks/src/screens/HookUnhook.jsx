@@ -194,6 +194,7 @@ const HookUnhook = () => {
                 request: item._id,
                 owner: item.owner._id,
                 ownerName: item.owner.userName,
+                profileImage: item.owner.profileImage,
                 status: item.status,
               })
             }>
