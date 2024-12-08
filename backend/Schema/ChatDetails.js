@@ -38,7 +38,7 @@ const ChatSchema = new mongoose.Schema(
 ChatSchema.pre('save', function (next) {
     if (this.messages && this.messages.length > 0) {
         // Get the last message from the messages array
-        const lastMsg = this.messages[this.messages.length - 1];
+        const lastMsg = this.messages[0];
 
         // Make sure all required fields of lastMessage (e.g., sender) are populated
         if (lastMsg && lastMsg.sender) {

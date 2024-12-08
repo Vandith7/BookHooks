@@ -195,7 +195,10 @@ const OwnBookDetails = ({route}) => {
                       userID: requestAccepted.requester._id,
                       profileImage: requestAccepted.requester.profileImage,
                       bookName: book.title,
+                      bookId: book._id,
+                      returnStatus: book.returnStatus,
                       requestId: requestAccepted._id,
+                      book: book,
                     })
                   }>
                   <View style={styles.requesterDetails}>

@@ -8,6 +8,7 @@ import {
   FlatList,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {ThemeContext} from '../context/ThemeContext';
@@ -28,6 +29,7 @@ const HookUnhook = () => {
   const [unhook, setUnHooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
   const [index, setIndex] = useState(0);
   const [routes, setRoutes] = useState([
@@ -45,6 +47,7 @@ const HookUnhook = () => {
       });
       setHookedBooks(response.data.data);
       setLoading(false);
+      console.log(response.data.data);
     } catch (err) {
       setError('Failed to fetch books');
       setLoading(false);
@@ -77,8 +80,21 @@ const HookUnhook = () => {
   useFocusEffect(
     useCallback(() => {
       fetchUnHook();
+      fetchBooks();
     }, []),
   );
+
+  const onRefreshBooks = async () => {
+    setRefreshing(true);
+    await fetchBooks();
+    setRefreshing(false);
+  };
+
+  const onRefreshUnhooks = async () => {
+    setRefreshing(true);
+    await fetchUnHook();
+    setRefreshing(false);
+  };
 
   const HookRoute = () =>
     loading ? (
@@ -89,6 +105,9 @@ const HookUnhook = () => {
       />
     ) : (
       <FlatList
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefreshBooks} />
+        }
         contentContainerStyle={{alignItems: 'center'}}
         data={hookedBooks}
         showsVerticalScrollIndicator={false}
@@ -143,6 +162,24 @@ const HookUnhook = () => {
               }}>
               {item.title}
             </Text>
+            <Text
+              style={{
+                color: theme.text,
+                backgroundColor:
+                  item.requestCount > 0 ? theme.primary : 'transparent', // Apply color conditionally
+                padding: hp(1),
+                borderRadius: hp(1),
+                fontSize: TextSize.Tiny,
+                fontFamily: 'Poppins-SemiBold',
+                textAlign: 'center',
+                marginTop: 10,
+              }}>
+              {item.HookStatus === 'hooked' && item.requestCount > 0
+                ? `${item.requestCount} Unhook requests`
+                : item.HookStatus === 'unhooked'
+                ? 'Unhooked'
+                : ''}
+            </Text>
           </TouchableOpacity>
         )}
       />
@@ -157,6 +194,12 @@ const HookUnhook = () => {
       />
     ) : (
       <FlatList
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefreshUnhooks}
+          />
+        }
         contentContainerStyle={{alignItems: 'center', paddingBottom: hp(2)}}
         data={unhook}
         showsVerticalScrollIndicator={false}
@@ -196,6 +239,7 @@ const HookUnhook = () => {
                 ownerName: item.owner.userName,
                 profileImage: item.owner.profileImage,
                 status: item.status,
+                book: item.book,
               })
             }>
             <Image
@@ -233,16 +277,87 @@ const HookUnhook = () => {
               </Text>
             </View>
             <View>
-              <Text
-                style={{
-                  color: item.status === 'pending' ? 'orange' : 'green',
-                  fontSize: TextSize.Tiny,
-                  fontFamily: 'Poppins-SemiBold',
-                  textAlign: 'center',
-                  marginTop: 5,
-                }}>
-                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-              </Text>
+              {item.book.returnConfirmation.ownerConfirmed == true ? (
+                <Text
+                  style={{
+                    color:
+                      item.book.returnStatus === 'requested'
+                        ? 'orange'
+                        : 'green',
+                    fontSize: TextSize.Tiny,
+                    fontFamily: 'Poppins-SemiBold',
+                    textAlign: 'center',
+                    marginTop: 5,
+                  }}>
+                  Book returned
+                </Text>
+              ) : item.book.returnConfirmation.requesterConfirmed == true ? (
+                <Text
+                  style={{
+                    color:
+                      item.book.returnStatus === 'requested'
+                        ? 'orange'
+                        : 'green',
+                    fontSize: TextSize.Tiny,
+                    fontFamily: 'Poppins-SemiBold',
+                    textAlign: 'center',
+                    marginTop: 5,
+                  }}>
+                  Kindly wait for {item.owner.userName} to confirm once the book
+                  has been received.
+                </Text>
+              ) : item.book.returnStatus == 'requested' ? (
+                <Text
+                  style={{
+                    color:
+                      item.book.returnStatus === 'requested'
+                        ? 'orange'
+                        : 'green',
+                    fontSize: TextSize.Tiny,
+                    fontFamily: 'Poppins-SemiBold',
+                    textAlign: 'center',
+                    marginTop: 5,
+                  }}>
+                  {item.owner.userName} has requested to return book
+                </Text>
+              ) : item.book.returnStatus == 'accepted' ? (
+                <Text
+                  style={{
+                    color:
+                      item.book.returnStatus === 'requested'
+                        ? 'orange'
+                        : 'green',
+                    fontSize: TextSize.Tiny,
+                    fontFamily: 'Poppins-SemiBold',
+                    textAlign: 'center',
+                    marginTop: 5,
+                  }}>
+                  You have agreed to return book to {item.owner.userName}.
+                </Text>
+              ) : (
+                ''
+              )}
+              {item.book.returnStatus == 'requested' ||
+              item.book.returnStatus == 'accepted' ? (
+                ''
+              ) : (
+                <Text
+                  style={{
+                    color:
+                      item.status === 'pending'
+                        ? 'orange'
+                        : item.status === 'returned'
+                        ? 'transparent'
+                        : 'green',
+                    fontSize: TextSize.Tiny,
+                    fontFamily: 'Poppins-SemiBold',
+                    textAlign: 'center',
+                    marginTop: 5,
+                  }}>
+                  UnHook{' '}
+                  {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                </Text>
+              )}
             </View>
           </TouchableOpacity>
         )}

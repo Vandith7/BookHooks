@@ -265,7 +265,43 @@ app.get('/user-books', authenticateToken, async (req, res) => {
     const userId = req.userId;
 
     try {
-        const books = await Book.find({ owner: userId });
+        const books = await Book.aggregate([
+            { $match: { owner: new mongoose.Types.ObjectId(userId) } }, // Match books owned by the user
+            {
+                $lookup: {
+                    from: "UnhookRequests", // The UnhookRequests collection
+                    localField: "_id", // Book's ID
+                    foreignField: "book", // Book reference in UnhookRequests
+                    as: "unhookRequests" // Alias for matched requests
+                }
+            },
+            {
+                $addFields: {
+                    pendingRequests: {
+                        $filter: {
+                            input: "$unhookRequests", // Filter unhookRequests
+                            as: "request",
+                            cond: { $eq: ["$$request.status", "pending"] } // Only include pending requests
+                        }
+                    },
+                    requestCount: {
+                        $size: {
+                            $filter: {
+                                input: "$unhookRequests",
+                                as: "request",
+                                cond: { $eq: ["$$request.status", "pending"] } // Count only pending requests
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    unhookRequests: 0, // Exclude the unhookRequests array if not needed
+                    pendingRequests: 0 // Exclude filtered requests array if not needed
+                }
+            }
+        ]);
 
         if (books.length === 0) {
             return res.status(200).send({ status: 'Success', data: [], message: 'No books found for this user.' });
@@ -278,6 +314,39 @@ app.get('/user-books', authenticateToken, async (req, res) => {
     }
 });
 
+app.post("/update-return-status", async (req, res) => {
+    const { bookId, returnStatus } = req.body;
+
+    // Validate the request body
+    if (!bookId || !returnStatus) {
+        return res.status(400).json({ message: "bookId and returnStatus are required" });
+    }
+
+    // Check for valid returnStatus
+    if (!["requested", "accepted", "confirmed"].includes(returnStatus)) {
+        return res.status(400).json({ message: "Invalid returnStatus value" });
+    }
+
+    try {
+        // Find the book by ID and update the returnStatus
+        const book = await Book.findById(bookId);
+
+        if (!book) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        // Update the returnStatus field
+        book.returnStatus = returnStatus;
+
+        // Save the updated book
+        await book.save();
+
+        return res.status(200).json({ message: "Return status updated successfully" });
+    } catch (error) {
+        console.error("Error updating return status:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
 
 app.post('/hooked-books', authenticateToken, async (req, res) => {
     const userId = req.userId;
@@ -326,6 +395,19 @@ app.post('/unhook-request', async (req, res) => {
         });
 
         await unhookRequest.save();
+        const book = await Book.findById(bookId);
+        if (book) {
+            // Set the returnStatus to 'requested' when a new request is made
+            book.returnStatus = 'none';
+
+            // Initialize returnConfirmation to indicate both parties have not confirmed
+            book.returnConfirmation = {
+                requesterConfirmed: false,
+                ownerConfirmed: false
+            };
+
+            await book.save();
+        }
         res.status(201).json({ message: 'Unhook request sent successfully.' });
     } catch (error) {
         console.error('Error creating unhook request:', error);
@@ -393,14 +475,13 @@ app.get('/book-requests-accepted', async (req, res) => {
     }
 });
 
-
 app.get('/user-unhooks', authenticateToken, async (req, res) => {
     const userId = req.userId;
 
     try {
         // Find all unhook requests made by the user and populate book and owner details
         const unhookRequests = await UnhookRequest.find({ requester: userId })
-            .populate('book', 'title bookThumbnail') // Get book details (like title and thumbnail)
+            .populate('book', 'title bookThumbnail returnStatus returnConfirmation') // Get book details (like title and thumbnail)
             .populate('owner', 'userName profileImage'); // Get owner details (like name and profile image)
 
         if (!unhookRequests.length) {
@@ -469,7 +550,86 @@ app.post('/accept-unhook-request', async (req, res) => {
     }
 });
 
+app.post('/delete-unhook-request', async (req, res) => {
+    const { requestId } = req.body;
 
+    if (!requestId) {
+        return res.status(400).json({ message: 'Request ID is required.' });
+    }
+
+    try {
+        const unhookRequest = await UnhookRequest.findById(requestId);
+
+        if (!unhookRequest) {
+            return res.status(404).json({ message: 'Unhook request not found.' });
+        }
+
+        // Check if the request status is already processed
+        if (unhookRequest.status !== 'pending') {
+            return res.status(400).json({ message: 'This request has already been processed and cannot be deleted.' });
+        }
+
+        // Delete the unhook request
+        await unhookRequest.deleteOne();
+
+        res.status(200).json({ message: 'Unhook request deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting unhook request:', error);
+        res.status(500).json({ message: 'Failed to delete unhook request.' });
+    }
+});
+
+app.post('/confirm-return-status', async (req, res) => {
+    const { bookId, returnStatus, requesterConfirmed } = req.body;
+    try {
+        // Find the book and update the return status and requester confirmation
+        const book = await Book.findByIdAndUpdate(
+            bookId,
+            {
+                returnStatus: returnStatus,
+                'returnConfirmation.requesterConfirmed': requesterConfirmed, // Set requesterConfirmed to true
+            },
+            { new: true } // Return the updated book
+        );
+
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        res.status(200).json(book);
+    } catch (error) {
+        console.error('Error confirming return status:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+app.post('/confirm-receive-return-status', async (req, res) => {
+    const { bookId, returnStatus, ownerConfirmed, requestId } = req.body;
+    try {
+        // Find the book and update the return status and requester confirmation
+        const request = await UnhookRequest.findByIdAndUpdate(requestId, {
+            status: 'returned'
+        })
+        const book = await Book.findByIdAndUpdate(
+            bookId,
+            {
+                returnStatus: returnStatus,
+                HookStatus: 'hooked',
+                'returnConfirmation.ownerConfirmed': ownerConfirmed, // Set requesterConfirmed to true
+            },
+            { new: true } // Return the updated book
+        );
+
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        res.status(200).json(book);
+    } catch (error) {
+        console.error('Error confirming return status:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 app.post('/add-trackbook', authenticateToken, async (req, res) => {
     const {
@@ -1140,7 +1300,7 @@ app.get('/chat-api/chats/:chatId', authenticateToken, async (req, res) => {
         }
 
         // Reverse the order of the messages to show the newest messages first
-        chat.messages.reverse();
+        // chat.messages.reverse();
 
 
 
@@ -1177,8 +1337,8 @@ app.post('/chat-api/chats/:chatId/messages', authenticateToken, async (req, res)
             timestamp: new Date(),
         };
 
-        // Add the message to the chat
-        chat.messages.push(message);
+        // Add the message to the start of the messages array
+        chat.messages.unshift(message);
         chat.lastMessage = {
             text,
             sender,  // Add sender to lastMessage
@@ -1192,12 +1352,11 @@ app.post('/chat-api/chats/:chatId/messages', authenticateToken, async (req, res)
             }
         });
 
-
         // Save the chat with the new message
         await chat.save();
 
-        // Retrieve the newly added message (last one in the array) to include the `_id`
-        const newMessage = chat.messages[chat.messages.length - 1];
+        // Retrieve the newly added message (first one in the array now) to include the `_id`
+        const newMessage = chat.messages[0];
 
         // Emit the new message to the socket for real-time updates
         io.to(chatId).emit('receive_message', { lastMessage: chat.lastMessage, unreadCount: chat.unreadCount, newMessage });
@@ -1209,6 +1368,7 @@ app.post('/chat-api/chats/:chatId/messages', authenticateToken, async (req, res)
         res.status(500).send({ message: 'Internal server error.' });
     }
 });
+
 
 app.get('/user-api/current', authenticateToken, async (req, res) => {
     const userId = req.userId; // Get the userId from the authenticated token

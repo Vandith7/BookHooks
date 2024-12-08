@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -142,8 +142,6 @@ const Home = ({navigation}) => {
             headers: {Authorization: `Bearer ${token}`},
           },
         );
-        // console.log(response.data.data);
-        console.log(response);
         setOtherUserBooks(response.data.data);
       }
     } catch (error) {
@@ -240,6 +238,96 @@ const Home = ({navigation}) => {
     determineGreeting();
     getCurrentLocation();
   }, []);
+  const renderBookItem = useMemo(() => {
+    return ({item}) => {
+      // Check if book has latitude and longitude
+      const hasCoordinates = item.latitude && item.longitude;
+
+      // Calculate distance if coordinates are available
+      const distance =
+        location && hasCoordinates
+          ? calculateDistance(
+              location.latitude,
+              location.longitude,
+              item.latitude,
+              item.longitude,
+            )
+          : 'N/A'; // If no coordinates or user location, show 'N/A'
+
+      return (
+        <TouchableOpacity
+          style={[styles.bookItem, {backgroundColor: theme.card}]}
+          onPress={() =>
+            navigation.navigate('BookDetails', {
+              book: item,
+              currentUserId,
+            })
+          }>
+          <Image
+            source={
+              item.bookThumbnail
+                ? {uri: item.bookThumbnail}
+                : item.images.length > 0
+                ? {uri: item.images[0]}
+                : require('../assets/images/book-stack.png')
+            }
+            resizeMode="contain"
+            style={styles.bookImage}
+          />
+          <Text
+            numberOfLines={1} // Limit the title to 4 lines
+            ellipsizeMode="tail" // Add "..." at the end if the text overflows
+            style={{
+              color: theme.text,
+              fontSize: TextSize.Small,
+              fontFamily: 'Poppins-SemiBold',
+              textAlign: 'center',
+              marginTop: 10,
+            }}>
+            {item.title}
+          </Text>
+
+          <Text
+            numberOfLines={1} // Limit the title to 4 lines
+            ellipsizeMode="tail" // Add "..." at the end if the text overflows
+            style={{
+              color: theme.text,
+              fontSize: TextSize.Tiny,
+              fontFamily: 'Poppins-SemiBold',
+              textAlign: 'center',
+            }}>
+            by {item.author}
+          </Text>
+
+          {/* Display distance or fallback message */}
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: TextSize.Tiny,
+              fontFamily: 'Poppins-Regular',
+              textAlign: 'center',
+            }}>
+            {hasCoordinates && distance !== 'N/A'
+              ? `~ ${distance} km away`
+              : ''}
+          </Text>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: TextSize.Tiny,
+              fontFamily: 'Poppins-SemiBold',
+              textAlign: 'center',
+            }}>
+            {item.requestCount
+              ? ` ${item.requestCount} ${
+                  item.requestCount === 1 ? 'person has' : 'people have'
+                } requested this book`
+              : ''}
+          </Text>
+        </TouchableOpacity>
+      );
+    };
+  }, [location, theme.text]);
 
   return (
     <SafeAreaView
@@ -375,96 +463,7 @@ const Home = ({navigation}) => {
                 showsVerticalScrollIndicator={false}
                 numColumns={2}
                 keyExtractor={item => item._id.toString()}
-                renderItem={({item}) => {
-                  // Check if book has latitude and longitude
-                  const hasCoordinates = item.latitude && item.longitude;
-
-                  // Calculate distance if coordinates are available
-                  const distance =
-                    location && hasCoordinates
-                      ? calculateDistance(
-                          location.latitude,
-                          location.longitude,
-                          item.latitude,
-                          item.longitude,
-                        )
-                      : 'N/A'; // If no coordinates or user location, show 'N/A'
-
-                  return (
-                    <TouchableOpacity
-                      style={[styles.bookItem, {backgroundColor: theme.card}]}
-                      onPress={() =>
-                        navigation.navigate('BookDetails', {
-                          book: item,
-                          currentUserId,
-                        })
-                      }>
-                      <Image
-                        source={
-                          item.bookThumbnail
-                            ? {uri: item.bookThumbnail}
-                            : item.images.length > 0
-                            ? {uri: item.images[0]}
-                            : require('../assets/images/book-stack.png')
-                        }
-                        resizeMode="contain"
-                        style={styles.bookImage}
-                      />
-                      <Text
-                        numberOfLines={1} // Limit the title to 4 lines
-                        ellipsizeMode="tail" // Add "..." at the end if the text overflows
-                        style={{
-                          color: theme.text,
-                          fontSize: TextSize.Small,
-                          fontFamily: 'Poppins-SemiBold',
-                          textAlign: 'center',
-                          marginTop: 10,
-                        }}>
-                        {item.title}
-                      </Text>
-
-                      <Text
-                        numberOfLines={1} // Limit the title to 4 lines
-                        ellipsizeMode="tail" // Add "..." at the end if the text overflows
-                        style={{
-                          color: theme.text,
-                          fontSize: TextSize.Tiny,
-                          fontFamily: 'Poppins-SemiBold',
-                          textAlign: 'center',
-                        }}>
-                        by {item.author}
-                      </Text>
-
-                      {/* Display distance or fallback message */}
-                      <Text
-                        style={{
-                          color: theme.text,
-                          fontSize: TextSize.Tiny,
-                          fontFamily: 'Poppins-Regular',
-                          textAlign: 'center',
-                        }}>
-                        {hasCoordinates && distance !== 'N/A'
-                          ? `~ ${distance} km away`
-                          : ''}
-                      </Text>
-                      <Text
-                        style={{
-                          color: theme.text,
-                          fontSize: TextSize.Tiny,
-                          fontFamily: 'Poppins-SemiBold',
-                          textAlign: 'center',
-                        }}>
-                        {item.requestCount
-                          ? ` ${item.requestCount} ${
-                              item.requestCount === 1
-                                ? 'person has'
-                                : 'people have'
-                            } requested this book`
-                          : ''}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }}
+                renderItem={renderBookItem}
               />
             ) : (
               <Text style={{color: theme.text}}>

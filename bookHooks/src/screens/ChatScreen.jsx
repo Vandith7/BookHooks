@@ -236,7 +236,7 @@ const ChatScreen = ({navigation, route}) => {
       });
       return;
     }
-
+    setNewMessage('');
     const messageData = {text: newMessage.trim()};
 
     try {
@@ -271,7 +271,7 @@ const ChatScreen = ({navigation, route}) => {
       setInputHeight(hp(8));
     } catch (error) {
       console.error('Error sending message:', error);
-
+      setNewMessage(messageData.text);
       Snackbar.show({
         text: 'Failed to send message. Please try again.',
         duration: Snackbar.LENGTH_LONG,

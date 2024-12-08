@@ -39,6 +39,31 @@ const RequesterDetails = ({route, navigation}) => {
     }
   };
 
+  const deleteRequest = async () => {
+    try {
+      const response = await axios.post(`${ipv4}/delete-unhook-request`, {
+        requestId: requestId,
+      });
+      if (response.status === 200) {
+        Snackbar.show({
+          text: `${bookName} unHook request has been deleted!`,
+          duration: Snackbar.LENGTH_LONG,
+          backgroundColor: '#B08968', // You can change the color
+          textColor: '#FFFFFF',
+        });
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Error deleting unhook request:', error);
+      Snackbar.show({
+        text: 'Failed to delete the unhook request.',
+        duration: Snackbar.LENGTH_LONG,
+        backgroundColor: '#B08968', // You can change the color
+        textColor: '#FFFFFF',
+      });
+    }
+  };
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -78,7 +103,8 @@ const RequesterDetails = ({route, navigation}) => {
             style={[
               styles.buyButton,
               {backgroundColor: theme.primary, width: '48%'},
-            ]}>
+            ]}
+            onPress={deleteRequest}>
             <Text style={[styles.buyButtonText, {color: theme.text}]}>
               Decline Request
             </Text>

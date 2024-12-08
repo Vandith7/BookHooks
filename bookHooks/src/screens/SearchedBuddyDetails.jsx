@@ -219,35 +219,20 @@ const SearchedBuddyDetails = ({route}) => {
   const getUserData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        showSessionExpiredMessage();
-        navigateToLogin();
-        return;
-      }
 
       // Validate the token or fetch user data
-      const response = await axios.post(`${ipv4}/user-data`, {token});
+      const response = await axios.post(
+        `${ipv4}/user-data`,
+        {}, // Empty body, assuming the endpoint does not need a payload
+        {
+          headers: {Authorization: `Bearer ${token}`},
+        },
+      );
 
       // Set user data if token is valid
       setUserData(response.data.data._id);
     } catch (error) {
       console.error('Error fetching user data:', error);
-
-      // Handle token-related errors specifically
-      if (
-        error.response?.status === 401 ||
-        error.response?.data?.error === 'TokenExpiredError'
-      ) {
-        showSessionExpiredMessage();
-      } else {
-        Snackbar.show({
-          text: 'An error occurred while fetching user data. Please try again.',
-          duration: Snackbar.LENGTH_LONG,
-          backgroundColor: '#B08968',
-          textColor: '#FFFFFF',
-        });
-      }
-      navigateToLogin();
     }
   };
 

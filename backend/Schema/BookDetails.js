@@ -17,7 +17,17 @@ const BookDetailsSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     owner: {
         type: mongoose.Schema.Types.ObjectId, ref: 'User'
-    }
+    },
+    returnStatus: {
+        type: String,
+        enum: ['requested', 'accepted', 'confirmed', 'none'],
+        default: 'none'
+    },
+
+    returnConfirmation: {
+        requesterConfirmed: { type: Boolean, default: false },
+        ownerConfirmed: { type: Boolean, default: false },
+    },
 }, {
     collection: "BookInfo"
 });
