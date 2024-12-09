@@ -30,25 +30,7 @@ const HookedUserDetails = ({route, navigation}) => {
   } = route.params;
   const [chatId, setChatId] = useState('');
   const {theme} = React.useContext(ThemeContext);
-  const user = {userName: userName, profileImage: profileImage};
-  const acceptRequest = async () => {
-    try {
-      const response = await axios.post(`${ipv4}/accept-unhook-request`, {
-        requestId: requestId,
-      });
-      if (response.status === 200) {
-        Snackbar.show({
-          text: `${bookName} has been unHooked by ${userName}!`,
-          duration: Snackbar.LENGTH_LONG,
-          backgroundColor: '#B08968',
-          textColor: '#FFFFFF',
-        });
-        navigation.goBack();
-      }
-    } catch (error) {
-      console.error('Error deleting unhook request:', error);
-    }
-  };
+  const user = {_id: userID, userName: userName, profileImage: profileImage};
 
   const askToReturnBook = async () => {
     try {

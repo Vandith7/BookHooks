@@ -44,7 +44,6 @@ const TrackBooks = () => {
 
       if (response.status === 200) {
         setUserData(response.data.data);
-        console.log(response.data.data);
       } else {
         console.log('Error:', response.data.data);
       }

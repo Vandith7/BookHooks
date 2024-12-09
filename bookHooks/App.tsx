@@ -23,6 +23,9 @@ import ChatScreen from './src/screens/ChatScreen';
 import { Image, TouchableOpacity, View } from 'react-native';
 import SocketProvider from './src/context/SocketContext';
 import { ChatProvider } from './src/context/ChatContext';
+import EditProfile from './src/screens/EditProfile';
+import MyBuddies from './src/screens/MyBuddies';
+import BuddyConnections from './src/screens/BuddyConnections';
 
 // Define types for navigation params
 type RootStackParamList = {
@@ -34,6 +37,9 @@ type RootStackParamList = {
   AddTrackBooks:undefined;
   Buddies:undefined;
   ChatsListScreen:undefined;
+  EditProfile:undefined;
+  MyBuddies:{user:{userName:string}}
+  BuddyConnections:{user:{userName:string}}
   ChatScreen:{ user: { userName: string;profileImage:string  } };
   BookDetails: { book: { title: string; isbn10?: string; isbn13?: string; owner: string; author: string; bookThumbnail?: string } };
   BuddyTrackBook: { book: { title: string; } }; 
@@ -242,6 +248,36 @@ const ThemeWrapper = () => {
           const buddyName = route.params.buddy?.userName ?? 'Buddy Details'; 
           return {
             title: buddyName,
+            headerShown: true,
+          };
+        }}
+      />
+
+<Stack.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={{ title: 'Edit Profile' ,headerShown:true}}
+      />
+
+<Stack.Screen
+        name="MyBuddies"
+        component={MyBuddies}
+        options={({ route }) => {
+          const userName = route.params.user?.userName ?? 'My Buddies'; 
+          return {
+            title: userName,
+            headerShown: true,
+          };
+        }}
+      />
+
+<Stack.Screen
+        name="BuddyConnections"
+        component={BuddyConnections}
+        options={({ route }) => {
+          const userName = route.params.user?.userName ?? 'Buddy Connections'; 
+          return {
+            title: userName,
             headerShown: true,
           };
         }}

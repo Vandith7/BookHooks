@@ -93,15 +93,9 @@ const ChatListsScreen = ({navigation, route}) => {
 
       // Listen for new messages
       socket.on('receive_message', message => {
-        setChats(prevChats => {
-          const updatedChats = prevChats.map(chat => {
-            const senderId = message.newMessage.sender;
-
-            const isSenderInChat = chat.participants.some(
-              participant => participant._id === senderId,
-            );
-
-            if (isSenderInChat) {
+        setChats(prevChats =>
+          prevChats.map(chat => {
+            if (chat._id === message.chatId) {
               return {
                 ...chat,
                 lastMessage: message.newMessage,
@@ -111,11 +105,9 @@ const ChatListsScreen = ({navigation, route}) => {
                 },
               };
             }
-            return chat;
-          });
-
-          return updatedChats;
-        });
+            return chat; // Keep other chats unchanged
+          }),
+        );
       });
 
       socket.on('message_read', data => {
@@ -158,13 +150,11 @@ const ChatListsScreen = ({navigation, route}) => {
 
   const renderChatItem = ({item}) => {
     const currentUserId = user.data._id;
-    console.log(item);
     // Determine which participant's profile image to show
     const participantToShow =
       item.participants[1]._id === currentUserId
         ? item.participants[0]
         : item.participants[1];
-
     const getFormattedTime = timestamp => {
       if (!timestamp) return '';
 

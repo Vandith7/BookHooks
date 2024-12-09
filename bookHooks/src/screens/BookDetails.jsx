@@ -240,10 +240,7 @@ const BookDetails = ({route}) => {
                 The details for this book was sourced from Google.
               </Text>
             )}
-            <Text style={[styles.detailLabel, {color: theme.text}]}>
-              If you send an UnHook request the book owner can see your email
-              and contact
-            </Text>
+
             <View
               style={[
                 styles.buttonContainer,

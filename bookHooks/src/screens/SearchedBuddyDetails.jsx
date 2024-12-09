@@ -259,7 +259,14 @@ const SearchedBuddyDetails = ({route}) => {
               resizeMode="contain"
               style={styles.profileImage}
             />
-            <View style={{width: '68%', alignItems: 'center'}}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('BuddyConnections', {
+                  user: buddy,
+                  currentUserId: userData,
+                });
+              }}
+              style={{width: '68%', alignItems: 'center'}}>
               <Text
                 style={[
                   styles.title,
@@ -283,7 +290,7 @@ const SearchedBuddyDetails = ({route}) => {
                 ]}>
                 Buddy connections
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <View style={[styles.bioContainer]}>
             <Text

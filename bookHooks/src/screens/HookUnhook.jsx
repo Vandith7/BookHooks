@@ -47,7 +47,6 @@ const HookUnhook = () => {
       });
       setHookedBooks(response.data.data);
       setLoading(false);
-      console.log(response.data.data);
     } catch (err) {
       setError('Failed to fetch books');
       setLoading(false);
@@ -166,7 +165,9 @@ const HookUnhook = () => {
               style={{
                 color: theme.text,
                 backgroundColor:
-                  item.requestCount > 0 ? theme.primary : 'transparent', // Apply color conditionally
+                  item.requestCount > 0 || item.HookStatus == 'unhooked'
+                    ? theme.primary
+                    : 'transparent',
                 padding: hp(1),
                 borderRadius: hp(1),
                 fontSize: TextSize.Tiny,

@@ -93,7 +93,6 @@ const UpdateTrackBook = ({route}) => {
       bookData.dateStarted = dateStarted;
     }
 
-    // console.log(bookData); // Logs the book data to check before sending
     if (bookStatus !== 'complete' && dateCompleted !== null) {
       Snackbar.show({
         text: `Can't change date completed of book with status ${bookStatus} !`,

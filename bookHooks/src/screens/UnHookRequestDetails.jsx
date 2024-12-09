@@ -23,7 +23,6 @@ const UnHookRequestDetails = ({route, navigation}) => {
     route.params;
   const [chatId, setChatId] = useState('');
   const user = {userName: ownerName, profileImage: profileImage};
-  console.log(book);
   const deleteRequest = async () => {
     try {
       const response = await axios.post(`${ipv4}/delete-unhook-request`, {

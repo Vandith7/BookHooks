@@ -68,7 +68,6 @@ const ChatScreen = ({navigation, route}) => {
           });
           setUser(userResponse.data); // Set the current user's data
         }
-        console.log('fetch data called');
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -84,7 +83,6 @@ const ChatScreen = ({navigation, route}) => {
 
       // Listen for new messages only after user data is available
       socket.on('receive_message', message => {
-        console.log(message);
         if (user && message.newMessage.sender !== user.data._id) {
           const messageExists = messages.some(
             existingMessage => existingMessage._id === message.newMessage._id,
@@ -92,7 +90,6 @@ const ChatScreen = ({navigation, route}) => {
 
           if (!messageExists) {
             setMessages(prevMessages => [message.newMessage, ...prevMessages]);
-            console.log('received', message);
             handleReadReceipt(chatId, message.newMessage._id);
 
             // If the user is not at the bottom, show the new messages indicator
@@ -198,7 +195,6 @@ const ChatScreen = ({navigation, route}) => {
   };
   useFocusEffect(
     React.useCallback(() => {
-      console.log('useFocus');
       if (user) {
         fetchMessages();
       }
@@ -368,7 +364,6 @@ const ChatScreen = ({navigation, route}) => {
       };
 
       const handleDeleteMessage = async messageId => {
-        console.log('delete', messageId);
         try {
           const response = await axios.delete(
             `${ipv4}/chats/${chatId}/messages/${messageId}`,

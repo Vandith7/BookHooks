@@ -246,8 +246,6 @@ const AddTrackBooks = () => {
       visibility,
     };
 
-    console.log(bookData); // Logs the book data to check before sending
-
     try {
       // Get token from AsyncStorage
       const token = await AsyncStorage.getItem('token');

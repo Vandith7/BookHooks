@@ -120,6 +120,80 @@ app.post('/register', async (req, res) => {
     }
 });
 
+app.post('/edit-profile', authenticateToken, async (req, res) => {
+    const { firstName, lastName, userName, email, contactNumber, bio, profileImage } = req.body;
+    const userId = req.userId
+    // Trim input values
+    const trimmedFirstName = firstName ? firstName.trim() : undefined;
+    const trimmedLastName = lastName ? lastName.trim() : undefined;
+    const trimmedUserName = userName ? userName.trim() : undefined;
+    const trimmedEmail = email ? email.trim() : undefined;
+    const trimmedContactNumber = contactNumber ? contactNumber.trim() : undefined;
+    const trimmedBio = bio ? bio.trim() : undefined;
+
+    if (!userId) {
+        return res.status(400).send({ status: 'Error', data: 'UserId is required.' });
+    }
+
+    try {
+        const existingUser = await User.findOne({
+            $or: [
+                { email: trimmedEmail, _id: { $ne: userId } },
+                { userName: trimmedUserName, _id: { $ne: userId } },
+                { contactNumber: trimmedContactNumber, _id: { $ne: userId } }
+            ]
+        });
+
+        if (existingUser) {
+            if (existingUser.email === trimmedEmail) {
+                return res.status(400).send({ status: 'Error', data: 'Email already exists' });
+            }
+            if (existingUser.userName === trimmedUserName) {
+                return res.status(400).send({ status: 'Error', data: 'User name already exists' });
+            }
+            if (existingUser.contactNumber === trimmedContactNumber) {
+                return res.status(400).send({ status: 'Error', data: 'Contact number already in use' });
+            }
+        }
+
+        let uploadResponse = null;
+        if (profileImage) {
+            const base64Data = profileImage.split(';base64,').pop();
+            const imgFormat = profileImage.split(';')[0].split('/')[1];
+
+            uploadResponse = await cloudinary.uploader.upload(`data:image/${imgFormat};base64,${base64Data}`, {
+                folder: "user_profiles",
+                resource_type: "image"
+            });
+        }
+
+        // Update the user details
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                firstName: trimmedFirstName,
+                lastName: trimmedLastName,
+                userName: trimmedUserName,
+                email: trimmedEmail,
+                contactNumber: trimmedContactNumber,
+                bio: trimmedBio,
+                profileImage: uploadResponse ? uploadResponse.secure_url : undefined
+            },
+            { new: true }  // Return the updated user
+        );
+
+        if (!updatedUser) {
+            return res.status(404).send({ status: 'Error', data: 'User not found' });
+        }
+
+        res.status(200).send({ status: 'Success', data: 'User profile updated', user: updatedUser });
+    } catch (error) {
+        console.error("Profile update error:", error);
+        res.status(500).send({ status: 'Error', data: 'Internal server error' });
+    }
+});
+
+
 app.post('/login', async (req, res) => {
     const { loginId, password } = req.body;
     const trimmedLoginId = loginId.trim();
@@ -828,6 +902,27 @@ app.get('/find-users', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Error fetching users' });
+    }
+});
+
+app.get("/my-buddies", async (req, res) => {
+    const { userId } = req.query;
+
+    try {
+        const user = await User.findById(userId).populate({
+            path: "buddies",
+            select: "userName firstName lastName profileImage",
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Respond with the buddies' details
+        res.json({ buddies: user.buddies });
+    } catch (error) {
+        console.error("Error fetching buddies:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 

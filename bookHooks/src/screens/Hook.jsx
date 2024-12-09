@@ -264,7 +264,6 @@ const Hook = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       setHookLoading(true);
-      console.log(formData);
       await axios.post(`${ipv4}/add-book`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,

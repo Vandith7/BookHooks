@@ -7,8 +7,8 @@ const isEmulator = Platform.OS === 'android' && (
 
 export const platformConstants = {
     android: {
-        emulator: 'http://192.168.1.104:5001', // Standard Android emulator IP address http://192.168.1.104:5001,https://buttered-snapdragon-mosquito.glitch.me
-        device: 'http://localhost:5001', // Localhost for physical Android device http://localhost:5001
+        emulator: 'https://buttered-snapdragon-mosquito.glitch.me', // Standard Android emulator IP address http://192.168.1.104:5001,https://buttered-snapdragon-mosquito.glitch.me
+        device: 'https://buttered-snapdragon-mosquito.glitch.me', // Localhost for physical Android device http://localhost:5001
     },
 };
 
